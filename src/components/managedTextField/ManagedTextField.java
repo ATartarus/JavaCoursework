@@ -50,6 +50,11 @@ public class ManagedTextField extends JTextField {
         setBorder(data.isValid() ? validBorder : invalidBorder);
     }
 
+    public void setInvalidBorder(Border border) {
+        invalidBorder = border;
+        setBorder(data.isValid() ? validBorder : invalidBorder);
+    }
+
 
     public void addValidationListeners() {
         getDocument().addDocumentListener(new DocumentListener() {

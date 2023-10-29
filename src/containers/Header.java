@@ -1,4 +1,4 @@
-package app;
+package containers;
 
 import components.addDialog.AddDialog;
 import entity.Data;
@@ -12,7 +12,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.HashMap;
 
-public class Header extends ContainerManager {
+public class Header extends ComponentManager {
     private boolean cbModelChanged;
     private final JComboBox<String> semester;
     private final JComboBox<String> course;
@@ -29,6 +29,12 @@ public class Header extends ContainerManager {
     private final ManagedTextField studyYear;
     private final ManagedTextField studyHours;
     private final ManagedTextField examDate;
+
+    private final JLabel yearLabel;
+    private final JLabel facultyLabel;
+    private final JLabel disciplineLabel;
+    private final JLabel academicLabel;
+    private final JLabel hoursLabel;
 
     private final HashMap<String, JComponent> componentMap;
 
@@ -50,9 +56,17 @@ public class Header extends ContainerManager {
         studyYear = new ManagedTextField(Data.Type.Year);
         studyHours = new ManagedTextField(Data.Type.Hours);
         examDate = new ManagedTextField(Data.Type.Date);
+
+        yearLabel = new JLabel("Учебный год:");
+        facultyLabel = new JLabel("Факультет:");
+        disciplineLabel = new JLabel("Дисциплина:");
+        academicLabel = new JLabel("Преподаватель:");
+        hoursLabel = new JLabel("Всего часов:");
+
         studyYear.putClientProperty("isValid", true);
         studyHours.putClientProperty("isValid", true);
         examDate.putClientProperty("isValid", true);
+        examDate.setHorizontalAlignment(SwingConstants.CENTER);
 
         ImageIcon icon = new ImageIcon("button.png");
         icon = new ImageIcon(icon.getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH));
@@ -60,6 +74,10 @@ public class Header extends ContainerManager {
         facultyButton.setIcon(icon);
         disciplineButton.setIcon(icon);
         academicButton.setIcon(icon);
+        groupButton.setFocusPainted(false);
+        facultyButton.setFocusPainted(false);
+        disciplineButton.setFocusPainted(false);
+        academicButton.setFocusPainted(false);
 
         componentMap = new HashMap<>();
         componentMap.put("year", studyYear);
@@ -73,26 +91,97 @@ public class Header extends ContainerManager {
 
 
         configContainer();
+        addComponents();
         setSizeConstraints();
-        createMarkUp();
         configEventListeners();
     }
 
     @Override
     protected void configContainer() {
         container.setLayout(new GridBagLayout());
-        //container.setBackground(Color.red);
-        container.setPreferredSize(new Dimension(100, 50));
         container.setBorder(BorderFactory.createEmptyBorder(
                 10, 10, 10, 10)
         );
-
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.BOTH;
         gbc.weightx = 1;
         gbc.gridy = 0;
-        gbc.weighty = 1;
+        gbc.weighty = 0;
         parent.getContentPane().add(container, gbc);
+    }
+
+    /**
+     * Places components into cells created by createCell method
+     * and places them on container with respect to GridBagConstraints
+     */
+    @Override
+    protected void addComponents() {
+        JPanel cell;
+        GridBagConstraints gbc = new GridBagConstraints();
+
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 0;
+        gbc.weighty = 0;
+
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.insets = new Insets(5,  0, 5, 0);
+        container.add(yearLabel, gbc);
+        gbc.gridy = 1;
+        container.add(facultyLabel, gbc);
+        gbc.gridy = 2;
+        container.add(disciplineLabel, gbc);
+        gbc.gridy = 3;
+        container.add(academicLabel, gbc);
+        gbc.gridy = 4;
+        container.add(hoursLabel, gbc);
+
+        gbc.weightx = 0.2;
+        gbc.gridx = 1;
+        gbc.gridy = 0;
+        cell = createCell(null, studyYear, null);
+        container.add(cell, gbc);
+        gbc.weightx = 0.2;
+        gbc.gridx = 2;
+        cell = createCell("Семестр:", semester, null);
+        container.add(cell, gbc);
+        gbc.weightx = 0.2;
+        gbc.gridx = 3;
+        cell = createCell("Курс:", course, null);
+        container.add(cell, gbc);
+        gbc.weightx = 0.4;
+        gbc.gridx = 4;
+        cell = createCell("Группа", group, groupButton);
+        container.add(cell, gbc);
+
+        gbc.gridx = 1;
+        gbc.gridy = 1;
+        gbc.gridwidth = 4;
+        cell = createCell(null, faculty, facultyButton);
+        container.add(cell, gbc);
+
+        gbc.gridx = 1;
+        gbc.gridy = 2;
+        cell = createCell(null, discipline, disciplineButton);
+        container.add(cell, gbc);
+
+        gbc.gridx = 1;
+        gbc.gridy = 3;
+        cell = createCell(null, academic, academicButton);
+        container.add(cell, gbc);
+
+        gbc.gridx = 1;
+        gbc.gridy = 4;
+        gbc.gridwidth = 1;
+        gbc.weightx = 0.3;
+        cell = createCell(null, studyHours, null);
+        container.add(cell, gbc);
+
+        gbc.gridx = 4;
+        gbc.gridwidth = 2;
+        gbc.weightx = 0.3;
+        cell = createCell("Дата проведения:", examDate, null);
+        container.add(cell, gbc);
     }
 
     /**
@@ -176,76 +265,6 @@ public class Header extends ContainerManager {
     }
 
     /**
-     * Places components into cells created by createCell method
-     * and places them on container with respect to GridBagConstraints
-     */
-    private void createMarkUp() {
-        JPanel cell;
-        GridBagConstraints gbc = new GridBagConstraints();
-
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.weightx = 0.1;
-        gbc.weighty = 0.2;
-
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        container.add(new JLabel("Учебный год:"), gbc);
-        gbc.gridy = 1;
-        container.add(new JLabel("Факультет:"), gbc);
-        gbc.gridy = 2;
-        container.add(new JLabel("Дисциплина:"), gbc);
-        gbc.gridy = 3;
-        container.add(new JLabel("Преподаватель:"), gbc);
-        gbc.gridy = 4;
-        container.add(new JLabel("Всего часов:"), gbc);
-
-        gbc.weightx = 0.1;
-        gbc.gridx = 1;
-        gbc.gridy = 0;
-        cell = createCell(null, studyYear, null);
-        container.add(cell, gbc);
-        gbc.weightx = 0.25;
-        gbc.gridx = 2;
-        cell = createCell("Семестр:", semester, null);
-        container.add(cell, gbc);
-        gbc.weightx = 0.2;
-        gbc.gridx = 3;
-        cell = createCell("Курс:", course, null);
-        container.add(cell, gbc);
-        gbc.weightx = 0.4;
-        gbc.gridx = 4;
-        cell = createCell("Группа", group, groupButton);
-        container.add(cell, gbc);
-
-        gbc.gridx = 1;
-        gbc.gridy = 1;
-        gbc.gridwidth = 4;
-        cell = createCell(null, faculty, facultyButton);
-        container.add(cell, gbc);
-
-        gbc.gridx = 1;
-        gbc.gridy = 2;
-        cell = createCell(null, discipline, disciplineButton);
-        container.add(cell, gbc);
-
-        gbc.gridx = 1;
-        gbc.gridy = 3;
-        cell = createCell(null, academic, academicButton);
-        container.add(cell, gbc);
-
-        gbc.gridx = 1;
-        gbc.gridy = 4;
-        gbc.gridwidth = 1;
-        cell = createCell(null, studyHours, null);
-        container.add(cell, gbc);
-
-        gbc.gridx = 4;
-        gbc.gridwidth = 2;
-        cell = createCell("Дата проведения:", examDate, null);
-        container.add(cell, gbc);
-    }
-
-    /**
      * Creates cells containing components
      * Used by createMarkup method
      */
@@ -265,7 +284,6 @@ public class Header extends ContainerManager {
             cell.add(btn);
             cell.add(Box.createHorizontalStrut(10));
         }
-        cell.setPreferredSize(new Dimension(50, 25));
         return cell;
     }
 
@@ -273,25 +291,40 @@ public class Header extends ContainerManager {
      * Sets size constraints to containers components
      */
     private void setSizeConstraints() {
-        groupButton.setMinimumSize(new Dimension(25, 25));
-        groupButton.setMaximumSize(new Dimension(25, 25));
-        groupButton.setPreferredSize(new Dimension(25, 25));
-        facultyButton.setMinimumSize(new Dimension(25, 25));
-        facultyButton.setMaximumSize(new Dimension(25, 25));
-        facultyButton.setPreferredSize(new Dimension(25, 25));
-        disciplineButton.setMinimumSize(new Dimension(25, 25));
-        disciplineButton.setMaximumSize(new Dimension(25, 25));
-        disciplineButton.setPreferredSize(new Dimension(25, 25));
-        academicButton.setMinimumSize(new Dimension(25, 25));
-        academicButton.setMaximumSize(new Dimension(25, 25));
-        academicButton.setPreferredSize(new Dimension(25, 25));
+        JButton[] buttons = new JButton[] {groupButton, facultyButton, disciplineButton, academicButton};
+        for (JButton button : buttons) {
+            button.setMinimumSize(new Dimension(28, 28));
+            button.setMaximumSize(new Dimension(28, 28));
+            button.setPreferredSize(new Dimension(28, 28));
+        }
 
-        semester.setPreferredSize(new Dimension(0, 0));
-        course.setPreferredSize(new Dimension(0, 0));
-        group.setPreferredSize(new Dimension(0, 0));
-        faculty.setPreferredSize(new Dimension(0, 0));
-        discipline.setPreferredSize(new Dimension(0, 0));
-        academic.setPreferredSize(new Dimension(0, 0));
+        JLabel[] labels = new JLabel[] {yearLabel, facultyLabel, disciplineLabel, academicLabel, hoursLabel};
+
+        for (JLabel label : labels) {
+            label.setMinimumSize(new Dimension(150, 28));
+            label.setMaximumSize(new Dimension(150, 28));
+            label.setPreferredSize(new Dimension(150, 28));
+        }
+
+        semester.setMinimumSize(new Dimension(50, 28));
+        semester.setPreferredSize(new Dimension(50, 28));
+        course.setMinimumSize(new Dimension(50, 28));
+        course.setPreferredSize(new Dimension(50, 28));
+        group.setMinimumSize(new Dimension(100, 28));
+        group.setPreferredSize(new Dimension(120, 28));
+        faculty.setMinimumSize(new Dimension(200, 28));
+        faculty.setPreferredSize(new Dimension(300, 28));
+        discipline.setMinimumSize(new Dimension(200, 28));
+        discipline.setPreferredSize(new Dimension(300, 28));
+        academic.setMinimumSize(new Dimension(200, 28));
+        academic.setPreferredSize(new Dimension(300, 28));
+
+        studyYear.setMinimumSize(new Dimension(80, 28));
+        studyYear.setPreferredSize(new Dimension(100, 28));
+        studyHours.setMinimumSize(new Dimension(80,  28));
+        studyHours.setPreferredSize(new Dimension(100, 28));
+        examDate.setMinimumSize(new Dimension(60, 28));
+        examDate.setPreferredSize(new Dimension(60, 28));
     }
 
     /**

@@ -3,7 +3,10 @@ package components.managedTable;
 import entity.Data;
 
 import javax.swing.*;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.EventObject;
 
@@ -30,12 +33,6 @@ public class ManagedTable extends JTable {
     public ManagedTable() {
         setCellSelectionEnabled(true);
         setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-
-/*        DefaultTableModel model = new DefaultTableModel(
-                new String[]{"№", "Фамилия, инициалы обучающегося", "№ зачетной книжки",
-                        "Отметка о зачёте", "Оценка"}, 10
-        );
-        setModel(model);*/
         ManagedTableModel model = new ManagedTableModel();
         setModel(model);
         getTableHeader().setReorderingAllowed(false);
@@ -52,16 +49,9 @@ public class ManagedTable extends JTable {
         getColumnModel().getColumn(0).setCellRenderer(cr);
 
 
-        setRowHeight(25);
-        getColumnModel().getColumn(0).setMaxWidth(50);
-        getColumnModel().getColumn(0).setMinWidth(50);
-        getColumnModel().getColumn(1).setMinWidth(250);
-        getColumnModel().getColumn(2).setMaxWidth(150);
-        getColumnModel().getColumn(2).setMinWidth(150);
-        getColumnModel().getColumn(3).setMinWidth(200);
-        getColumnModel().getColumn(4).setMinWidth(200);
+        setSizeConstraints();
 
-        setBorder(BorderFactory.createLineBorder(Color.gray, 1));
+        //setBorder(BorderFactory.createLineBorder(Color.gray, 1));
 
         getColumnModel().getColumn(1).setCellEditor(new ManagedTextFieldEditor(Data.Type.Name));
         getColumnModel().getColumn(2).setCellEditor(new ManagedTextFieldEditor(Data.Type.SerialNumber));
@@ -69,6 +59,19 @@ public class ManagedTable extends JTable {
         setDefaultRenderer(Data.class, new LabelRenderer());
         setDefaultEditor(String.class, new ComboBoxEditor());
         setDefaultRenderer(String.class, new ComboBoxRenderer());
+    }
+
+    private void setSizeConstraints() {
+        setRowHeight(25);
+        getColumnModel().getColumn(0).setMinWidth(50);
+        getColumnModel().getColumn(0).setMaxWidth(50);
+        getColumnModel().getColumn(1).setMinWidth(250);
+        getColumnModel().getColumn(2).setMinWidth(150);
+        getColumnModel().getColumn(2).setMaxWidth(150);
+        getColumnModel().getColumn(3).setMinWidth(200);
+        getColumnModel().getColumn(4).setMinWidth(200);
+
+        setMinimumSize(new Dimension(850, 0));
     }
 }
 

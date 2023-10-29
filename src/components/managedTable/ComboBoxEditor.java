@@ -1,6 +1,6 @@
 package components.managedTable;
 
-import entity.TableRecord;
+import entity.Student;
 
 import javax.swing.*;
 import javax.swing.event.PopupMenuEvent;
@@ -12,7 +12,7 @@ public class ComboBoxEditor extends DefaultCellEditor {
     public ComboBoxEditor() {
         super(new JTextField());
         setClickCountToStart(1);
-        component = new JComboBox<>(TableRecord.results);
+        component = new JComboBox<>(Student.results);
         component.setBorder(null);
         editorComponent = component;
         component.addPopupMenuListener(new PopupMenuListener() {

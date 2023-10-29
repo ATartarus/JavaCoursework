@@ -1,9 +1,13 @@
 package app;
 
+import containers.Body;
+import containers.Footer;
+import containers.Header;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import javax.swing.*;
+import javax.swing.plaf.FontUIResource;
 import javax.xml.parsers.*;
 import javax.xml.transform.*;
 import javax.xml.transform.dom.DOMSource;
@@ -11,6 +15,7 @@ import javax.xml.transform.stream.StreamResult;
 import java.awt.*;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.util.Enumeration;
 
 
 public class Main {
@@ -23,23 +28,39 @@ public class Main {
     private final Footer footer;
 
     public Main() {
+        String font = UIManager.getDefaults().getFont("Label.font").getName();
+        Enumeration<Object> keys = UIManager.getDefaults().keys();
+        while (keys.hasMoreElements()) {
+            Object key = keys.nextElement();
+            Object value = UIManager.get (key);
+            if (value instanceof javax.swing.plaf.FontUIResource)
+                UIManager.put (key, new FontUIResource(new Font(font, Font.PLAIN, 14)));
+        }
+        UIManager.put("MenuBar.font", new FontUIResource(new Font(font, Font.PLAIN, 14)));
+        UIManager.put("MenuItem.font", new FontUIResource(new Font(font, Font.PLAIN, 14)));
+        UIManager.put("Menu.font", new FontUIResource(new Font(font, Font.PLAIN, 14)));
+
         mainWindow = new JFrame("Application");
-        mainWindow.setSize(1000, 800);
-        mainWindow.setMinimumSize(new Dimension(1000, 800));
         mainWindow.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         mainWindow.setJMenuBar(createMenu());
         mainWindow.setContentPane(new JPanel(new GridBagLayout()));
 
+
+
         header = new Header(mainWindow);
         body = new Body(mainWindow);
         footer = new Footer(mainWindow);
+
+        body.addTableModelListener(footer::updateData);
 
         try {
             loadProject();
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
+        mainWindow.pack();
         mainWindow.setVisible(true);
+        mainWindow.setMinimumSize(mainWindow.getSize());
     }
 
 

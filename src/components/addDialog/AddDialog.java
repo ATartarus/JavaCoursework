@@ -19,14 +19,17 @@ public class AddDialog extends JDialog {
         textField = new JTextField(20);
         okButton = new JButton("OK");
         cancelButton = new JButton("Cancel");
+
         config();
     }
 
     private void config() {
         okButton.addActionListener(e -> onOKClick());
         cancelButton.addActionListener(e -> onCancelClick());
+        okButton.setFocusPainted(false);
+        cancelButton.setFocusPainted(false);
 
-        textField.setPreferredSize(new Dimension(0, 27));
+        textField.setPreferredSize(new Dimension(0, 30));
         container.add(textField);
         container.add(okButton);
         container.add(cancelButton);

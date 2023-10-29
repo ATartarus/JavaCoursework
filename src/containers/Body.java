@@ -1,54 +1,64 @@
-package app;
+package containers;
 
 import components.managedTable.ManagedTable;
 import components.managedTable.ManagedTableModel;
 
 import javax.swing.*;
+import javax.swing.event.TableModelListener;
 import java.awt.*;
 
-public class Body extends ContainerManager {
+public class Body extends ComponentManager {
+    private final JScrollPane scroll;
     private final ManagedTable table;
     private final JButton addButton;
     public Body(JFrame parent) {
         super(parent);
         table = new ManagedTable();
-
-        JPanel panel = new JPanel(new FlowLayout(FlowLayout.TRAILING));
-        panel.setOpaque(false);
+        scroll = new JScrollPane(table);
         addButton = new JButton();
-        addButton.setPreferredSize(new Dimension(100, 25));
-        ImageIcon icon = new ImageIcon("button.png");
-        icon = new ImageIcon(icon.getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH));
-        addButton.setIcon(icon);
-        panel.add(addButton);
 
         configContainer();
-        addScrollTable();
-        container.add(panel, BorderLayout.PAGE_END);
+        addComponents();
         configEventListeners();
+        setSizeConstraints();
     }
 
     @Override
     protected void configContainer() {
-        container.setBackground(Color.yellow);
         container.setLayout(new BorderLayout());
-        container.setPreferredSize(new Dimension(100, 50));
         container.setBorder(BorderFactory.createEmptyBorder(
                 10, 10, 10, 10)
         );
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.BOTH;
-        gbc.weightx = 1.0;
+        gbc.weightx = 1;
         gbc.gridy = 1;
-        gbc.weighty = 3;
+        gbc.weighty = 1;
         parent.getContentPane().add(container, gbc);
+    }
+
+    @Override
+    protected void addComponents() {
+        scroll.getViewport().setOpaque(false);
+        scroll.setBackground(new Color(0, 0, 0, 0));
+        scroll.setBorder(BorderFactory.createEmptyBorder());
+
+        container.add(scroll, BorderLayout.CENTER);
+
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.TRAILING));
+        panel.setOpaque(false);
+        addButton.setFocusPainted(false);
+        ImageIcon icon = new ImageIcon("button.png");
+        icon = new ImageIcon(icon.getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH));
+        addButton.setIcon(icon);
+        panel.add(addButton);
+        container.add(panel, BorderLayout.PAGE_END);
     }
 
     @Override
     protected void configEventListeners() {
         addButton.addActionListener(e -> {
-            //DefaultTableModel tableModel = (DefaultTableModel) table.getModel();
             ManagedTableModel tableModel = (ManagedTableModel) table.getModel();
             int rows = tableModel.getRowCount();
             if (rows > 0 && tableModel.getValueAt(rows - 1, 1) == null) {
@@ -64,12 +74,14 @@ public class Body extends ContainerManager {
         });
     }
 
-    private void addScrollTable() {
-        JScrollPane scroll = new JScrollPane(table);
-        scroll.getViewport().setOpaque(false);
-        scroll.setBackground(new Color(100, 0, 0, 0));
-        scroll.setBorder(BorderFactory.createEmptyBorder());
-        scroll.setPreferredSize(new Dimension(0, 0));
-        container.add(scroll, BorderLayout.CENTER);
+    public void addTableModelListener(TableModelListener l) {
+        table.getModel().addTableModelListener(l);
+    }
+
+    private void setSizeConstraints() {
+        Dimension s = table.getMinimumSize();
+        scroll.setMinimumSize(new Dimension(s.width, 0));
+        scroll.setPreferredSize(new Dimension(s.width, 200));
+        addButton.setPreferredSize(new Dimension(100, 25));
     }
 }

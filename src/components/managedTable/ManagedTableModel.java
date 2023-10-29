@@ -1,7 +1,7 @@
 package components.managedTable;
 
 import entity.Data;
-import entity.TableRecord;
+import entity.Student;
 
 import javax.swing.table.AbstractTableModel;
 import java.util.ArrayList;
@@ -11,7 +11,7 @@ public class ManagedTableModel extends AbstractTableModel {
             "№", "Фамилия, инициалы обучающегося", "№ зачетной книжки", "Отметка о зачёте", "Оценка"
     };
 
-    private final ArrayList<TableRecord> tableData = new ArrayList<>();
+    private final ArrayList<Student> tableData = new ArrayList<>();
 
     @Override
     public int getRowCount() {
@@ -59,13 +59,14 @@ public class ManagedTableModel extends AbstractTableModel {
         } else if (aValue instanceof String str) {
             tableData.get(rowIndex).setResult(str);
         }
+        fireTableCellUpdated(rowIndex, columnIndex);
     }
 
     @Override
     public Object getValueAt(int rowIndex, int columnIndex) {
         Object value = null;
         if (rowIndex < tableData.size()) {
-            TableRecord record = tableData.get(rowIndex);
+            Student record = tableData.get(rowIndex);
             switch (columnIndex) {
                 case 0 -> value = record.getID();
                 case 1 -> value = record.getName();
@@ -78,12 +79,12 @@ public class ManagedTableModel extends AbstractTableModel {
         return value;
     }
 
-    public void addRow(TableRecord row) {
-        TableRecord record;
+    public void addRow(Student row) {
+        Student record;
         if (row == null) {
-            record = new TableRecord(getRowCount() + 1,null, null, null, null);
+            record = new Student(getRowCount() + 1,null, null, null, null);
         } else {
-            record = new TableRecord(getRowCount() + 1,
+            record = new Student(getRowCount() + 1,
                     new Data(row.getName()),
                     new Data(row.getSerialNumber()),
                     row.getResult(),
@@ -91,6 +92,10 @@ public class ManagedTableModel extends AbstractTableModel {
             );
         }
         tableData.add(record);
-        fireTableRowsInserted(getRowCount(), getRowCount());
+        fireTableRowsInserted(getRowCount() - 1, getRowCount() - 1);
+    }
+
+    public Student getEntity(int row) {
+        return tableData.get(row);
     }
 }

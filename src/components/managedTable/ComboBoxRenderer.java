@@ -1,6 +1,6 @@
 package components.managedTable;
 
-import entity.TableRecord;
+import entity.Student;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -9,7 +9,7 @@ import java.awt.*;
 public class ComboBoxRenderer extends DefaultTableCellRenderer {
     private final JComboBox<String> component;
     public ComboBoxRenderer() {
-        component = new JComboBox<>(TableRecord.results);
+        component = new JComboBox<>(Student.results);
         component.setBorder(null);
     }
 

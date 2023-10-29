@@ -1,6 +1,6 @@
 package entity;
 
-public class TableRecord {
+public class Student {
     private final int ID;
     private Data name;
     private Data serialNumber;
@@ -8,7 +8,7 @@ public class TableRecord {
     private Data mark;
     public final static String[] results = new String[] {"Зачтено", "Не зачтено", "Не явился"};
 
-    public TableRecord(int ID, Data name, Data serialNumber, String result, Data mark) {
+    public Student(int ID, Data name, Data serialNumber, String result, Data mark) {
         this.ID = ID;
         this.name = name;
         this.serialNumber = serialNumber;
