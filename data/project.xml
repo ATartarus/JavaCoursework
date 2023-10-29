@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project>
+    <header src="C:\Code\Java\Coursework\data\headerData.xml">
+        <hours>102</hours>
+        <year>2021/2023</year>
+        <comboBox id="0" tag="academic"/>
+        <comboBox id="3" tag="course"/>
+        <comboBox id="0" tag="semester"/>
+        <comboBox id="0" tag="discipline"/>
+        <comboBox id="3" tag="group"/>
+        <comboBox id="0" tag="faculty"/>
+    </header>
+</project>
