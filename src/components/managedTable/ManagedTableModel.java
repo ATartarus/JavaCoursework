@@ -65,7 +65,7 @@ public class ManagedTableModel extends AbstractTableModel {
     @Override
     public Object getValueAt(int rowIndex, int columnIndex) {
         Object value = null;
-        if (rowIndex < tableData.size()) {
+        if (rowIndex >= 0 && rowIndex < tableData.size()) {
             Student record = tableData.get(rowIndex);
             switch (columnIndex) {
                 case 0 -> value = record.getID();

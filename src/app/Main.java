@@ -46,7 +46,6 @@ public class Main {
         mainWindow.setContentPane(new JPanel(new GridBagLayout()));
 
 
-
         header = new Header(mainWindow);
         body = new Body(mainWindow);
         footer = new Footer(mainWindow);

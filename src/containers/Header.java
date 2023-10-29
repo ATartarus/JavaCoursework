@@ -14,33 +14,60 @@ import java.util.HashMap;
 
 public class Header extends ComponentManager {
     private boolean cbModelChanged;
-    private final JComboBox<String> semester;
-    private final JComboBox<String> course;
-    private final JComboBox<String> group;
-    private final JComboBox<String> faculty;
-    private final JComboBox<String> discipline;
-    private final JComboBox<String> academic;
+    private JComboBox<String> semester;
+    private JComboBox<String> course;
+    private JComboBox<String> group;
+    private JComboBox<String> faculty;
+    private JComboBox<String> discipline;
+    private JComboBox<String> academic;
 
-    private final JButton groupButton;
-    private final JButton facultyButton;
-    private final JButton disciplineButton;
-    private final JButton academicButton;
+    private JButton groupButton;
+    private JButton facultyButton;
+    private JButton disciplineButton;
+    private JButton academicButton;
 
-    private final ManagedTextField studyYear;
-    private final ManagedTextField studyHours;
-    private final ManagedTextField examDate;
+    private ManagedTextField studyYear;
+    private ManagedTextField studyHours;
+    private ManagedTextField examDate;
 
-    private final JLabel yearLabel;
-    private final JLabel facultyLabel;
-    private final JLabel disciplineLabel;
-    private final JLabel academicLabel;
-    private final JLabel hoursLabel;
+    private JLabel yearLabel;
+    private JLabel facultyLabel;
+    private JLabel disciplineLabel;
+    private JLabel academicLabel;
+    private JLabel hoursLabel;
 
     private final HashMap<String, JComponent> componentMap;
 
     public Header (JFrame parent) {
         super(parent);
         cbModelChanged = false;
+
+        componentMap = new HashMap<>();
+        componentMap.put("year", studyYear);
+        componentMap.put("semester", semester);
+        componentMap.put("course", course);
+        componentMap.put("group", group);
+        componentMap.put("faculty", faculty);
+        componentMap.put("discipline", discipline);
+        componentMap.put("academic", academic);
+        componentMap.put("hours", studyHours);
+    }
+
+    @Override
+    protected void configContainer() {
+        container.setLayout(new GridBagLayout());
+        container.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.BOTH;
+        gbc.weightx = 1;
+        gbc.gridy = 0;
+        gbc.weighty = 0;
+        parent.getContentPane().add(container, gbc);
+    }
+
+    @Override
+    protected void initComponents() {
         semester = new JComboBox<>(new String[]{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10"});
         course = new JComboBox<>(new String[]{"1", "2", "3", "4", "5"});
         group = new JComboBox<>();
@@ -62,7 +89,10 @@ public class Header extends ComponentManager {
         disciplineLabel = new JLabel("Дисциплина:");
         academicLabel = new JLabel("Преподаватель:");
         hoursLabel = new JLabel("Всего часов:");
+    }
 
+    @Override
+    protected void configComponents() {
         studyYear.putClientProperty("isValid", true);
         studyHours.putClientProperty("isValid", true);
         examDate.putClientProperty("isValid", true);
@@ -78,36 +108,6 @@ public class Header extends ComponentManager {
         facultyButton.setFocusPainted(false);
         disciplineButton.setFocusPainted(false);
         academicButton.setFocusPainted(false);
-
-        componentMap = new HashMap<>();
-        componentMap.put("year", studyYear);
-        componentMap.put("semester", semester);
-        componentMap.put("course", course);
-        componentMap.put("group", group);
-        componentMap.put("faculty", faculty);
-        componentMap.put("discipline", discipline);
-        componentMap.put("academic", academic);
-        componentMap.put("hours", studyHours);
-
-
-        configContainer();
-        addComponents();
-        setSizeConstraints();
-        configEventListeners();
-    }
-
-    @Override
-    protected void configContainer() {
-        container.setLayout(new GridBagLayout());
-        container.setBorder(BorderFactory.createEmptyBorder(
-                10, 10, 10, 10)
-        );
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.fill = GridBagConstraints.BOTH;
-        gbc.weightx = 1;
-        gbc.gridy = 0;
-        gbc.weighty = 0;
-        parent.getContentPane().add(container, gbc);
     }
 
     /**
@@ -181,13 +181,10 @@ public class Header extends ComponentManager {
         gbc.gridwidth = 2;
         gbc.weightx = 0.3;
         cell = createCell("Дата проведения:", examDate, null);
+        cell.remove(cell.getComponentCount() - 1);
         container.add(cell, gbc);
     }
 
-    /**
-     * Specifies event listeners for containers components
-     * Also calls addTextFieldValidation
-     */
     @Override
     protected void configEventListeners() {
         groupButton.addActionListener(e -> {
@@ -264,33 +261,8 @@ public class Header extends ComponentManager {
         });
     }
 
-    /**
-     * Creates cells containing components
-     * Used by createMarkup method
-     */
-    private JPanel createCell(String label, JComponent input, JComponent btn) {
-        JPanel cell = new JPanel();
-        cell.setLayout(new BoxLayout(cell, BoxLayout.X_AXIS));
-        if (label != null) {
-            JLabel l = new JLabel(label);
-            cell.add(l);
-            cell.add(Box.createHorizontalStrut(10));
-        }
-        if (input != null) {
-            cell.add(input);
-            cell.add(Box.createHorizontalStrut(10));
-        }
-        if (btn != null) {
-            cell.add(btn);
-            cell.add(Box.createHorizontalStrut(10));
-        }
-        return cell;
-    }
-
-    /**
-     * Sets size constraints to containers components
-     */
-    private void setSizeConstraints() {
+    @Override
+    protected void setSizeConstraints() {
         JButton[] buttons = new JButton[] {groupButton, facultyButton, disciplineButton, academicButton};
         for (JButton button : buttons) {
             button.setMinimumSize(new Dimension(28, 28));
@@ -328,11 +300,37 @@ public class Header extends ComponentManager {
     }
 
     /**
+     * Creates cells containing components
+     * Used by createMarkup method
+     */
+    private JPanel createCell(String label, JComponent input, JComponent btn) {
+        JPanel cell = new JPanel();
+        cell.setLayout(new BoxLayout(cell, BoxLayout.X_AXIS));
+        if (label != null) {
+            JLabel l = new JLabel(label);
+            cell.add(l);
+            cell.add(Box.createHorizontalStrut(10));
+        }
+        if (input != null) {
+            cell.add(input);
+            cell.add(Box.createHorizontalStrut(10));
+        }
+        if (btn != null) {
+            cell.add(btn);
+            //cell.add(Box.createHorizontalStrut(10));
+        }
+        return cell;
+    }
+
+    /**
      * Tries to add item to combobox. If item already exists throws RuntimeException
      */
     private void tryAddItem(Object item, JComboBox<String> comboBox) throws RuntimeException {
         if (item == null)
             throw new RuntimeException("item is null");
+        if (item instanceof String str && str.isEmpty()) {
+            throw new RuntimeException("Элемент не может быть пустым");
+        }
         ComboBoxModel<String> model = comboBox.getModel();
         for (int i = 0; i < model.getSize(); i++) {
             if (model.getElementAt(i).equals(item))

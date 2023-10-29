@@ -5,36 +5,25 @@ import entity.Student;
 
 import javax.swing.*;
 import javax.swing.event.TableModelEvent;
-import javax.swing.table.TableModel;
 import java.awt.*;
 
 public class Footer extends ComponentManager {
-    private final JLabel showedStudents;
-    private final String showedStudentsPlaceholder =
+    private JLabel appearedStudents;
+    private final String appearedStudentsPlaceholder =
             "<html><em>Количество обучающихся, присутствовавших на аттестации: <b>{val}</b></em></html>";
-    private final JLabel unshowedStudents;
-    private final String unshowedStudentsPlaceholder =
+    private JLabel notAppearedStudents;
+    private final String notAppearedStudentsPlaceholder =
             "<html><em>Количество обучающихся, не явившихся на аттестацию<br>" +
             "(в том числе, не допущенных к аттестации): <b>{val}</b></em></html>";
 
     public Footer(JFrame parent) {
         super(parent);
-        showedStudents = new JLabel(showedStudentsPlaceholder.replace("{val}", "0"));
-        unshowedStudents = new JLabel(unshowedStudentsPlaceholder.replace("{val}", "0"));
-        showedStudents.setBorder(BorderFactory.createEmptyBorder(10, 10, 0, 10));
-        unshowedStudents.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-
-        showedStudents.setFont(new Font(showedStudents.getFont().getName(), Font.PLAIN, 16));
-        unshowedStudents.setFont(new Font(unshowedStudents.getFont().getName(), Font.PLAIN, 16));
-        configContainer();
-        addComponents();
     }
 
     @Override
     protected void configContainer() {
-        //container.setBackground(Color.green);
         container.setLayout(new BoxLayout(container, BoxLayout.Y_AXIS));
-
+        container.setBorder(BorderFactory.createLineBorder(Color.gray, 1));
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.BOTH;
@@ -45,15 +34,30 @@ public class Footer extends ComponentManager {
     }
 
     @Override
-    protected void addComponents() {
-        container.add(showedStudents);
-        container.add(unshowedStudents);
+    protected void initComponents() {
+        appearedStudents = new JLabel(appearedStudentsPlaceholder.replace("{val}", "0"));
+        notAppearedStudents = new JLabel(notAppearedStudentsPlaceholder.replace("{val}", "0"));
     }
 
     @Override
-    protected void configEventListeners() {
-
+    protected void configComponents() {
+        appearedStudents.setBorder(BorderFactory.createEmptyBorder(10, 10, 0, 10));
+        notAppearedStudents.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        appearedStudents.setFont(new Font(appearedStudents.getFont().getName(), Font.PLAIN, 16));
+        notAppearedStudents.setFont(new Font(notAppearedStudents.getFont().getName(), Font.PLAIN, 16));
     }
+
+    @Override
+    protected void setSizeConstraints() { }
+
+    @Override
+    protected void addComponents() {
+        container.add(appearedStudents);
+        container.add(notAppearedStudents);
+    }
+
+    @Override
+    protected void configEventListeners() {}
 
     public void updateData(TableModelEvent e) {
         Object source = e.getSource();
@@ -62,19 +66,19 @@ public class Footer extends ComponentManager {
             if (j != 3 && j != TableModelEvent.ALL_COLUMNS) return;
 
             int count = model.getRowCount();
-            int unshowed = 0;
+            int notAppeared = 0;
             for (int i = 0; i < count; i++) {
                 Student student = model.getEntity(i);
                 if (student.getResult().equals(Student.results[2]))
-                   unshowed++;
+                   notAppeared++;
             }
 
-            showedStudents.setText(showedStudentsPlaceholder.replace(
-                    "{val}", Integer.toString(count - unshowed)
+            appearedStudents.setText(appearedStudentsPlaceholder.replace(
+                    "{val}", Integer.toString(count - notAppeared)
             ));
 
-            unshowedStudents.setText(unshowedStudentsPlaceholder.replace(
-                    "{val}", Integer.toString(unshowed)
+            notAppearedStudents.setText(notAppearedStudentsPlaceholder.replace(
+                    "{val}", Integer.toString(notAppeared)
             ));
         }
     }
