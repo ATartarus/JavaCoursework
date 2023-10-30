@@ -33,25 +33,26 @@ public class ManagedTable extends JTable {
     public ManagedTable() {
         setCellSelectionEnabled(true);
         setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        getTableHeader().setReorderingAllowed(false);
         ManagedTableModel model = new ManagedTableModel();
         setModel(model);
-        getTableHeader().setReorderingAllowed(false);
+
+        setSizeConstraints();
+        config();
+    }
+
+    private void config() {
         getColumnModel().getColumn(0).setCellEditor(
-            new DefaultCellEditor(new JTextField()) {
-                @Override
-                public boolean isCellEditable(EventObject anEvent) {
-                    return false;
+                new DefaultCellEditor(new JTextField()) {
+                    @Override
+                    public boolean isCellEditable(EventObject anEvent) {
+                        return false;
+                    }
                 }
-            }
         );
         DefaultTableCellRenderer cr = new DefaultTableCellRenderer();
         cr.setHorizontalAlignment(JLabel.CENTER);
         getColumnModel().getColumn(0).setCellRenderer(cr);
-
-
-        setSizeConstraints();
-
-        //setBorder(BorderFactory.createLineBorder(Color.gray, 1));
 
         getColumnModel().getColumn(1).setCellEditor(new ManagedTextFieldEditor(Data.Type.Name));
         getColumnModel().getColumn(2).setCellEditor(new ManagedTextFieldEditor(Data.Type.SerialNumber));
