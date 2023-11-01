@@ -24,6 +24,7 @@ public class ComboBoxEditor extends DefaultCellEditor {
             @Override
             public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
                 component.getRootPane().getRootPane().repaint();
+                stopCellEditing();
             }
 
             @Override

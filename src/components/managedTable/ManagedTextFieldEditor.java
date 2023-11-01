@@ -5,6 +5,8 @@ import components.managedTextField.ManagedTextField;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 
 public class ManagedTextFieldEditor extends DefaultCellEditor {
     private final ManagedTextField component;
@@ -15,6 +17,16 @@ public class ManagedTextFieldEditor extends DefaultCellEditor {
             component.setHorizontalAlignment(SwingConstants.CENTER);
         component.setBackground(new Color(225, 225, 255));
         component.setValidBorder(null);
+        component.addFocusListener(new FocusListener() {
+            @Override
+            public void focusGained(FocusEvent e) {
+
+            }
+            @Override
+            public void focusLost(FocusEvent e) {
+                stopCellEditing();
+            }
+        });
         editorComponent = component;
     }
 

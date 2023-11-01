@@ -1,31 +1,19 @@
 package app;
 
-import containers.Body;
-import containers.Footer;
-import containers.Header;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
+import containers.*;
 
 import javax.swing.*;
 import javax.swing.plaf.FontUIResource;
-import javax.xml.parsers.*;
-import javax.xml.transform.*;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 import java.awt.*;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.util.Enumeration;
 
 
 public class Main {
-    private final String configPATH = "C:\\Code\\Java\\Coursework\\data";
-    private final String projectFileName = "project.xml";
-    private final String headerDataFileName = "headerData.xml";
     private final JFrame mainWindow;
     private final Header header;
     private final Body body;
     private final Footer footer;
+    private final ProjectFileManager fileManager;
 
     public Main() {
         String font = UIManager.getDefaults().getFont("Label.font").getName();
@@ -52,11 +40,12 @@ public class Main {
 
         body.addTableModelListener(footer::updateData);
 
-        try {
+        fileManager = new ProjectFileManager(new Writable[]{header, body, footer});
+/*        try {
             loadProject();
         } catch (Exception e) {
             System.out.println(e.getMessage());
-        }
+        }*/
         mainWindow.pack();
         mainWindow.setVisible(true);
         mainWindow.setMinimumSize(mainWindow.getSize());
@@ -80,7 +69,7 @@ public class Main {
         item = new JMenuItem("Open");
         file.add(item);
         item = new JMenuItem("Save");
-        item.addActionListener(e -> saveProject());
+        item.addActionListener(e -> fileManager.saveProject());
         file.add(item);
         item = new JMenuItem("SaveAs");
         file.add(item);
@@ -92,73 +81,6 @@ public class Main {
         about.add(new JMenuItem("Program"));
 
         return menuBar;
-    }
-
-    private void saveProject() {
-        DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-        DocumentBuilder builder;
-        try {
-            builder = dbFactory.newDocumentBuilder();
-        } catch (ParserConfigurationException e) {
-            System.out.println(e.getMessage());
-            return;
-        }
-        Document doc;
-
-        if (header.rewriteRequired()) {
-            doc = builder.newDocument();
-            header.writeHeaderData(doc);
-            try (FileOutputStream out =
-                         new FileOutputStream(configPATH + "\\" + headerDataFileName)) {
-                writeXmlFile(doc, out);
-            } catch (Exception e) {
-                System.out.println(e.getMessage());
-            }
-        }
-        doc = builder.newDocument();
-        Element root = doc.createElement("project");
-        doc.appendChild(root);
-        header.writeProjectData(doc);
-        ((Element)root.getFirstChild())
-                .setAttribute("src", configPATH + "\\" + headerDataFileName);
-
-        try (FileOutputStream out =
-                     new FileOutputStream(configPATH + "\\" + projectFileName)) {
-            writeXmlFile(doc, out);
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-        }
-    }
-
-    private void loadProject()
-            throws Exception {
-        DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-        DocumentBuilder builder;
-        builder = dbFactory.newDocumentBuilder();
-        Document project = builder.parse(new File(configPATH + "\\" + projectFileName));
-        Element headerRoot = (Element) project.getElementsByTagName("header").item(0);
-        Document data = builder.parse(new File(headerRoot.getAttribute("src")));
-        header.loadProjectData(project, data);
-    }
-
-
-    private void createDocxFile() {
-
-    }
-
-    private void writeXmlFile(Document doc, FileOutputStream out)
-            throws TransformerException {
-        TransformerFactory transformerFactory = TransformerFactory.newInstance();
-        Transformer transformer = transformerFactory.newTransformer();
-        transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-        DOMSource source = new DOMSource(doc);
-        StreamResult result = new StreamResult(out);
-
-        transformer.transform(source, result);
-    }
-
-    private void writeDocxFile() {
-
     }
 
     public static void main(String[] args) {

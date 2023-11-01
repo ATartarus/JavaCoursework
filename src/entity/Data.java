@@ -16,7 +16,7 @@ public class Data {
     public Data(Type type) {
         this.type = type;
         str = null;
-        valid = true;
+        valid = false;
     }
 
     public Data(Data prototype) {

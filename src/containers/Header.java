@@ -4,31 +4,27 @@ import components.addDialog.AddDialog;
 import entity.Data;
 import components.managedTextField.ManagedTextField;
 import entity.Validator;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.HashMap;
 
-public class Header extends ComponentManager {
-    private boolean cbModelChanged;
-    private JComboBox<String> semester;
-    private JComboBox<String> course;
-    private JComboBox<String> group;
-    private JComboBox<String> faculty;
-    private JComboBox<String> discipline;
-    private JComboBox<String> academic;
+public class Header extends ComponentManager implements Writable {
+    private JComboBox<String> semesterComboBox;
+    private JComboBox<String> courseComboBox;
+    private JComboBox<String> groupComboBox;
+    private JComboBox<String> facultyComboBox;
+    private JComboBox<String> disciplineComboBox;
+    private JComboBox<String> academicComboBox;
 
     private JButton groupButton;
     private JButton facultyButton;
     private JButton disciplineButton;
     private JButton academicButton;
 
-    private ManagedTextField studyYear;
-    private ManagedTextField studyHours;
-    private ManagedTextField examDate;
+    private ManagedTextField yearTextField;
+    private ManagedTextField hoursTextField;
+    private ManagedTextField dateTextField;
 
     private JLabel yearLabel;
     private JLabel facultyLabel;
@@ -36,21 +32,24 @@ public class Header extends ComponentManager {
     private JLabel academicLabel;
     private JLabel hoursLabel;
 
-    private final HashMap<String, JComponent> componentMap;
-
     public Header (JFrame parent) {
         super(parent);
-        cbModelChanged = false;
+    }
 
-        componentMap = new HashMap<>();
-        componentMap.put("year", studyYear);
-        componentMap.put("semester", semester);
-        componentMap.put("course", course);
-        componentMap.put("group", group);
-        componentMap.put("faculty", faculty);
-        componentMap.put("discipline", discipline);
-        componentMap.put("academic", academic);
-        componentMap.put("hours", studyHours);
+    @Override
+    public HashMap<String, JComponent> getComponentMap() {
+        HashMap<String, JComponent> map = new HashMap<>();
+        map.put("year", yearTextField);
+        map.put("semester", semesterComboBox);
+        map.put("course", courseComboBox);
+        map.put("group", groupComboBox);
+        map.put("faculty", facultyComboBox);
+        map.put("discipline", disciplineComboBox);
+        map.put("academic", academicComboBox);
+        map.put("hours", hoursTextField);
+        map.put("date", dateTextField);
+
+        return map;
     }
 
     @Override
@@ -68,21 +67,22 @@ public class Header extends ComponentManager {
 
     @Override
     protected void initComponents() {
-        semester = new JComboBox<>(new String[]{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10"});
-        course = new JComboBox<>(new String[]{"1", "2", "3", "4", "5"});
-        group = new JComboBox<>();
-        faculty = new JComboBox<>();
-        discipline = new JComboBox<>();
-        academic = new JComboBox<>();
+        semesterComboBox = new JComboBox<>(new String[]{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10"});
+        courseComboBox = new JComboBox<>(new String[]{"1", "2", "3", "4", "5"});
+        groupComboBox = new JComboBox<>();
+        facultyComboBox = new JComboBox<>();
+        disciplineComboBox = new JComboBox<>();
+        academicComboBox = new JComboBox<>();
 
         groupButton = new JButton();
         facultyButton = new JButton();
         disciplineButton = new JButton();
         academicButton = new JButton();
 
-        studyYear = new ManagedTextField(Data.Type.Year);
-        studyHours = new ManagedTextField(Data.Type.Hours);
-        examDate = new ManagedTextField(Data.Type.Date);
+        yearTextField = new ManagedTextField(Data.Type.Year);
+        hoursTextField = new ManagedTextField(Data.Type.Hours);
+        dateTextField = new ManagedTextField(Data.Type.Date);
+
 
         yearLabel = new JLabel("Учебный год:");
         facultyLabel = new JLabel("Факультет:");
@@ -93,10 +93,10 @@ public class Header extends ComponentManager {
 
     @Override
     protected void configComponents() {
-        studyYear.putClientProperty("isValid", true);
-        studyHours.putClientProperty("isValid", true);
-        examDate.putClientProperty("isValid", true);
-        examDate.setHorizontalAlignment(SwingConstants.CENTER);
+        yearTextField.putClientProperty("isValid", true);
+        hoursTextField.putClientProperty("isValid", true);
+        dateTextField.putClientProperty("isValid", true);
+        dateTextField.setHorizontalAlignment(SwingConstants.CENTER);
 
         ImageIcon icon = new ImageIcon("button.png");
         icon = new ImageIcon(icon.getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH));
@@ -139,48 +139,48 @@ public class Header extends ComponentManager {
         gbc.weightx = 0.2;
         gbc.gridx = 1;
         gbc.gridy = 0;
-        cell = createCell(null, studyYear, null);
+        cell = createCell(null, yearTextField, null);
         container.add(cell, gbc);
         gbc.weightx = 0.2;
         gbc.gridx = 2;
-        cell = createCell("Семестр:", semester, null);
+        cell = createCell("Семестр:", semesterComboBox, null);
         container.add(cell, gbc);
         gbc.weightx = 0.2;
         gbc.gridx = 3;
-        cell = createCell("Курс:", course, null);
+        cell = createCell("Курс:", courseComboBox, null);
         container.add(cell, gbc);
         gbc.weightx = 0.4;
         gbc.gridx = 4;
-        cell = createCell("Группа", group, groupButton);
+        cell = createCell("Группа", groupComboBox, groupButton);
         container.add(cell, gbc);
 
         gbc.gridx = 1;
         gbc.gridy = 1;
         gbc.gridwidth = 4;
-        cell = createCell(null, faculty, facultyButton);
+        cell = createCell(null, facultyComboBox, facultyButton);
         container.add(cell, gbc);
 
         gbc.gridx = 1;
         gbc.gridy = 2;
-        cell = createCell(null, discipline, disciplineButton);
+        cell = createCell(null, disciplineComboBox, disciplineButton);
         container.add(cell, gbc);
 
         gbc.gridx = 1;
         gbc.gridy = 3;
-        cell = createCell(null, academic, academicButton);
+        cell = createCell(null, academicComboBox, academicButton);
         container.add(cell, gbc);
 
         gbc.gridx = 1;
         gbc.gridy = 4;
         gbc.gridwidth = 1;
         gbc.weightx = 0.3;
-        cell = createCell(null, studyHours, null);
+        cell = createCell(null, hoursTextField, null);
         container.add(cell, gbc);
 
         gbc.gridx = 4;
         gbc.gridwidth = 2;
         gbc.weightx = 0.3;
-        cell = createCell("Дата проведения:", examDate, null);
+        cell = createCell("Дата проведения:", dateTextField, null);
         cell.remove(cell.getComponentCount() - 1);
         container.add(cell, gbc);
     }
@@ -194,7 +194,7 @@ public class Header extends ComponentManager {
 
             dial.addDialogListener(item -> {
                 Validator.validate(item, Data.Type.Group);
-                tryAddItem(item, group);
+                tryAddItem(item, groupComboBox);
             });
 
             dial.setVisible(true);
@@ -214,7 +214,7 @@ public class Header extends ComponentManager {
                             append(word.substring(1).toLowerCase()).append(' ');
                 }
                 item = tmp.toString();
-                tryAddItem(item, faculty);
+                tryAddItem(item, facultyComboBox);
             });
 
             dial.setVisible(true);
@@ -234,7 +234,7 @@ public class Header extends ComponentManager {
                             append(word.substring(1).toLowerCase()).append(" ");
                 }
                 item = tmp.toString();
-                tryAddItem(item, discipline);
+                tryAddItem(item, disciplineComboBox);
             });
 
             dial.setVisible(true);
@@ -254,7 +254,7 @@ public class Header extends ComponentManager {
                         tmp.substring(1, ind - 1).toLowerCase() +
                         tmp.substring(ind - 1, ind + 1).toUpperCase() + dummy +
                         tmp.substring(ind + 1).toUpperCase();
-                tryAddItem(item, academic);
+                tryAddItem(item, academicComboBox);
             });
 
             dial.setVisible(true);
@@ -278,25 +278,25 @@ public class Header extends ComponentManager {
             label.setPreferredSize(new Dimension(150, 28));
         }
 
-        semester.setMinimumSize(new Dimension(50, 28));
-        semester.setPreferredSize(new Dimension(50, 28));
-        course.setMinimumSize(new Dimension(50, 28));
-        course.setPreferredSize(new Dimension(50, 28));
-        group.setMinimumSize(new Dimension(100, 28));
-        group.setPreferredSize(new Dimension(120, 28));
-        faculty.setMinimumSize(new Dimension(200, 28));
-        faculty.setPreferredSize(new Dimension(300, 28));
-        discipline.setMinimumSize(new Dimension(200, 28));
-        discipline.setPreferredSize(new Dimension(300, 28));
-        academic.setMinimumSize(new Dimension(200, 28));
-        academic.setPreferredSize(new Dimension(300, 28));
+        semesterComboBox.setMinimumSize(new Dimension(50, 28));
+        semesterComboBox.setPreferredSize(new Dimension(50, 28));
+        courseComboBox.setMinimumSize(new Dimension(50, 28));
+        courseComboBox.setPreferredSize(new Dimension(50, 28));
+        groupComboBox.setMinimumSize(new Dimension(100, 28));
+        groupComboBox.setPreferredSize(new Dimension(120, 28));
+        facultyComboBox.setMinimumSize(new Dimension(200, 28));
+        facultyComboBox.setPreferredSize(new Dimension(300, 28));
+        disciplineComboBox.setMinimumSize(new Dimension(200, 28));
+        disciplineComboBox.setPreferredSize(new Dimension(300, 28));
+        academicComboBox.setMinimumSize(new Dimension(200, 28));
+        academicComboBox.setPreferredSize(new Dimension(300, 28));
 
-        studyYear.setMinimumSize(new Dimension(80, 28));
-        studyYear.setPreferredSize(new Dimension(100, 28));
-        studyHours.setMinimumSize(new Dimension(80,  28));
-        studyHours.setPreferredSize(new Dimension(100, 28));
-        examDate.setMinimumSize(new Dimension(60, 28));
-        examDate.setPreferredSize(new Dimension(60, 28));
+        yearTextField.setMinimumSize(new Dimension(80, 28));
+        yearTextField.setPreferredSize(new Dimension(100, 28));
+        hoursTextField.setMinimumSize(new Dimension(80,  28));
+        hoursTextField.setPreferredSize(new Dimension(100, 28));
+        dateTextField.setMinimumSize(new Dimension(60, 28));
+        dateTextField.setPreferredSize(new Dimension(60, 28));
     }
 
     /**
@@ -337,146 +337,5 @@ public class Header extends ComponentManager {
                 throw new RuntimeException("Элемент уже существует");
         }
         comboBox.addItem(item.toString());
-        cbModelChanged = true;
-    }
-
-    /**
-     * Creates separate element with tag "header" in doc and writes
-     * in it elements provided by supplementary method "createElement".
-     * @param doc Document in which project data will be written
-     */
-    public void writeProjectData(Document doc) {
-        Element root = doc.createElement("header");
-        doc.getFirstChild().appendChild(root);
-        for (String tag : componentMap.keySet()) {
-            Element element = createElement(doc, tag);
-            root.appendChild(element);
-        }
-    }
-
-    /**
-     * Creates XML element that contains selected data of JComponent or
-     * refers to those stored in separate file via attributes.
-     * @param doc Document used to create elements.
-     * @param tag Key of JComponent in componentMap and also tag of future XML element.
-     * @return Created element.
-     */
-    private Element createElement(Document doc, String tag) {
-        Element element = doc.createElement("null");
-        if (componentMap.get(tag) instanceof ManagedTextField textField) {
-            element = doc.createElement(tag);
-            String text = textField.getText();
-            if (!textField.getData().isValid() || text.isEmpty())
-                text = "null";
-            element.appendChild(doc.createTextNode(text));
-        } else if (componentMap.get(tag) instanceof JComboBox<?> comboBox) {
-            element = doc.createElement("comboBox");
-            element.setAttribute("tag", tag);
-            element.setAttribute("id", "null");
-            if (comboBox.getSelectedItem() instanceof String text) {
-                ComboBoxModel<?> model = comboBox.getModel();
-                for (int i = 0; i < model.getSize(); i++) {
-                    if (model.getElementAt(i).equals(text)) {
-                        element.setAttribute("id", Integer.toString(i));
-                        break;
-                    }
-                }
-            }
-        }
-
-        return element;
-    }
-
-    /**
-     * Writes all items from combo boxes into separate document
-     * which project file will refer to. Should be called only when
-     * data is changed.
-     * @param doc Document in which data will be written.
-     */
-    public void writeHeaderData(Document doc) {
-        Element root = doc.createElement("data");
-        doc.appendChild(root);
-
-        for (String tag : componentMap.keySet()) {
-            if (componentMap.get(tag) instanceof JComboBox<?> comboBox) {
-                Element element = doc.createElement("comboBox");
-                element.setAttribute("tag", tag);
-                StringBuilder val = new StringBuilder();
-                ComboBoxModel<?> model = comboBox.getModel();
-                int size = model.getSize();
-                for (int i = 0; i < size; i++) {
-                    val.append(model.getElementAt(i).toString())
-                            .append(i == size - 1 ? "" : ",");
-                }
-                element.appendChild(doc.createTextNode(
-                        val.isEmpty() ? "null" : val.toString())
-                );
-                root.appendChild(element);
-            }
-        }
-
-        cbModelChanged = false;
-    }
-
-    /**
-     * Finds first element with "header" tag in project and calls "parseElement" method
-     * on each child element of header
-     * @param project Document containing project configuration
-     * @param data Document containing project data to which project
-     *            refers to via its "src" attribute.
-     */
-    public void loadProjectData(Document project, Document data) {
-        Node root = project.getElementsByTagName("header").item(0);
-        Node node = root.getFirstChild();
-        while (node != null) {
-            if (node instanceof Element element) {
-                parseElement(element, data.getDocumentElement());
-            }
-            node = node.getNextSibling();
-        }
-    }
-
-    /**
-     * Parses element according to its type.
-     * Case its JTextField, sets text to content of element.
-     * Case its JComboBox, finds corresponding element from data and add all its values.
-     * @param element XML element delivered from "loadProjectData" method
-     * @param data XML element containing data to which element might refer to
-     */
-    private void parseElement(Element element, Element data) {
-        String tag = element.getTagName();
-        if (tag.equals("comboBox")) {
-            JComboBox<String> comboBox = (JComboBox<String>)
-                    componentMap.get(element.getAttribute("tag"));
-            comboBox.removeAllItems();
-            Node node = data.getFirstChild();
-            String items = "null";
-            while (node != null) {
-                if (node instanceof Element dataElement) {
-                    if (dataElement.getAttribute("tag")
-                            .equals(element.getAttribute("tag"))) {
-                        items = dataElement.getTextContent();
-                        break;
-                    }
-                }
-                node = node.getNextSibling();
-            }
-
-            if (!items.equals("null")) {
-                for (String item : items.split(",")) {
-                    comboBox.addItem(item);
-                }
-                comboBox.setSelectedIndex(
-                        Integer.parseInt(element.getAttribute("id"))
-                );
-            }
-        } else if (componentMap.get(element.getTagName()) instanceof ManagedTextField textField) {
-            textField.setText(element.getTextContent().equals("null") ?
-                    null : element.getTextContent());
-        }
-    }
-
-    public boolean rewriteRequired() {
-        return cbModelChanged;
     }
 }

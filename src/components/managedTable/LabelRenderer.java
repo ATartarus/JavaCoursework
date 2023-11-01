@@ -11,14 +11,21 @@ public class LabelRenderer extends DefaultTableCellRenderer {
         JLabel c = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
         if (value instanceof Data data) {
             c.setText(data.getText());
-            if (data.getType().equals(Data.Type.Mark))
+            if (data.getType().equals(Data.Type.Mark)) {
                 setHorizontalAlignment(CENTER);
-            else
+            } else {
                 setHorizontalAlignment(LEFT);
-            if (data.isValid())
+            }
+            if (data.isValid() || data.getText() == null) {
                 c.setBorder(null);
-            else
+            } else {
                 c.setBorder(BorderFactory.createLineBorder(Color.red, 2));
+            }
+            if (hasFocus) {
+                c.setBackground(table.getSelectionBackground());
+            } else {
+                c.setBackground(null);
+            }
         }
         return c;
     }

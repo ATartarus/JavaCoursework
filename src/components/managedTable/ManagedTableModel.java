@@ -82,7 +82,12 @@ public class ManagedTableModel extends AbstractTableModel {
     public void addRow(Student row) {
         Student record;
         if (row == null) {
-            record = new Student(getRowCount() + 1,null, null, null, null);
+            record = new Student(getRowCount() + 1,
+                    new Data(Data.Type.Name),
+                    new Data(Data.Type.SerialNumber),
+                    null,
+                    new Data(Data.Type.Mark)
+            );
         } else {
             record = new Student(getRowCount() + 1,
                     new Data(row.getName()),
@@ -97,5 +102,17 @@ public class ManagedTableModel extends AbstractTableModel {
 
     public Student getEntity(int row) {
         return tableData.get(row);
+    }
+
+    public boolean isReadyToWrite() {
+        if (tableData.isEmpty()) {
+            return false;
+        }
+        for (Student student : tableData) {
+            if (!student.getName().isValid() ||
+                !student.getSerialNumber().isValid())
+                return false;
+        }
+        return true;
     }
 }

@@ -2,18 +2,31 @@ package containers;
 
 import components.managedTable.ManagedTable;
 import components.managedTable.ManagedTableModel;
+import components.managedTable.ManagedTextFieldEditor;
+import components.managedTextField.ManagedTextField;
 import entity.Data;
 
 import javax.swing.*;
 import javax.swing.event.TableModelListener;
+import javax.swing.table.TableCellEditor;
 import java.awt.*;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.util.HashMap;
 
-public class Body extends ComponentManager {
+public class Body extends ComponentManager implements Writable {
     private JScrollPane scroll;
     private ManagedTable table;
     private JButton addButton;
     public Body(JFrame parent) {
         super(parent);
+    }
+
+    @Override
+    public HashMap<String, JComponent> getComponentMap() {
+        HashMap<String, JComponent> map = new HashMap<>();
+        map.put("table", table);
+        return map;
     }
 
     @Override
@@ -86,6 +99,25 @@ public class Body extends ComponentManager {
                     "Внимание!",
                     JOptionPane.ERROR_MESSAGE
             );
+        });
+        table.addFocusListener(new FocusListener() {
+            @Override
+            public void focusGained(FocusEvent e) {
+            }
+
+            @Override
+            public void focusLost(FocusEvent e) {
+                if (table.isEditing()) {
+                    DefaultCellEditor editor = (DefaultCellEditor) table.getCellEditor(table.getEditingRow(), table.getEditingColumn());
+                    Component component = editor.getComponent();
+                    Point mousePosition = MouseInfo.getPointerInfo().getLocation();
+                    SwingUtilities.convertPointFromScreen(mousePosition, component);
+
+                    if (!component.contains(mousePosition)) {
+                        editor.stopCellEditing();
+                    }
+                }
+            }
         });
     }
 

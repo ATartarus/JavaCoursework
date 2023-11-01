@@ -6,8 +6,9 @@ import entity.Student;
 import javax.swing.*;
 import javax.swing.event.TableModelEvent;
 import java.awt.*;
+import java.util.HashMap;
 
-public class Footer extends ComponentManager {
+public class Footer extends ComponentManager implements Writable {
     private JLabel appearedStudents;
     private final String appearedStudentsPlaceholder =
             "<html><em>Количество обучающихся, присутствовавших на аттестации: <b>{val}</b></em></html>";
@@ -18,6 +19,11 @@ public class Footer extends ComponentManager {
 
     public Footer(JFrame parent) {
         super(parent);
+    }
+
+    @Override
+    public HashMap<String, JComponent> getComponentMap() {
+        return null;
     }
 
     @Override

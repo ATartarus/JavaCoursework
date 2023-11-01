@@ -20,7 +20,7 @@ public class ComboBoxRenderer extends DefaultTableCellRenderer {
         } else {
             component.setSelectedItem(value.toString());
         }
-        if (isSelected) {
+        if (hasFocus) {
             component.setBackground(table.getSelectionBackground());
         } else {
             component.setBackground(null);
