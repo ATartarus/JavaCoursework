@@ -3,6 +3,7 @@ package app;
 import components.managedTable.ManagedTable;
 import components.managedTable.ManagedTableModel;
 import containers.Writable;
+import entity.Data;
 import entity.Student;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -29,21 +30,20 @@ public class ProjectFileManager {
     private String PATH;
     private String folderName;
     private String projectFileName;
-    private String dataFileName;
-    private HashMap<String, Writable> dataSources;
-
+    private final String dataFileName;
+    private final HashMap<String, Writable> containers;
     private DocumentBuilder docBuilder;
 
 
-    public ProjectFileManager(Writable[] dataSources) {
-        this(dataSources, System.getProperty("user.dir"));
+    public ProjectFileManager(Writable[] containers) {
+        this(containers, System.getProperty("user.dir"));
     }
 
-    public ProjectFileManager(Writable[] dataSources, String PATH) {
+    public ProjectFileManager(Writable[] containers, String PATH) {
         this.folderName = "data";
-        this.dataSources = new HashMap<>();
-        for (Writable source : dataSources) {
-            this.dataSources.put(source.getClassName(), source);
+        this.containers = new HashMap<>();
+        for (Writable source : containers) {
+            this.containers.put(source.getClassName(), source);
         }
         this.PATH = PATH + '\\' + folderName;
         this.projectFileName = "project";
@@ -62,87 +62,64 @@ public class ProjectFileManager {
         this.PATH = this.PATH.substring(0, this.PATH.lastIndexOf('\\') + 1) + this.folderName;
     }
 
-    public void setProjectFileName(String name) {
-        this.projectFileName = name;
+    public void setProjectFileName(String projectFileName) {
+        this.projectFileName = projectFileName;
     }
 
-    public void setDataFileName(String name) {
-        this.dataFileName = name;
+    /////////////////////////////////////////Save methods//////////////////////////////////////////
+
+    public void save() {
+        if (saveFile(dataFileName)) {
+            System.out.println(dataFileName + " was saved successfully");
+        } else {
+            System.err.println(dataFileName + " was not saved");
+        }
+
+        if (saveFile(projectFileName)) {
+            System.out.println(projectFileName + " was saved successfully");
+        } else {
+            System.err.println(projectFileName + " was not saved");
+        }
     }
 
-    public boolean saveProject() {
-        Document projectDoc;
+    private boolean saveFile(String fileName) {
+        Document doc;
 
-        File dataFile = new File(PATH + '\\' + projectFileName + ".xml");
+        File dataFile = new File(PATH + '\\' + fileName + ".xml");
         try {
-            projectDoc = docBuilder.parse(dataFile);
-            deleteIndentation(projectDoc);
+            doc = docBuilder.parse(dataFile);
+            deleteIndentation(doc);
         } catch (Exception e) {
-            projectDoc = docBuilder.newDocument();
-            projectDoc.appendChild(projectDoc.createElement("project"));
-            System.out.println("project file is not found");
+            doc = docBuilder.newDocument();
+            doc.appendChild(doc.createElement(fileName.equals(projectFileName) ?
+                    "project" : "data"));
+            System.out.println(fileName + " file is not found");
         }
 
-        if (!saveHeader(projectDoc)) {
-            System.err.println("saveProject:: header was not saved");
+        if (!saveHeader(doc)) {
+            System.err.println("saveFile:: " + fileName + " header was not saved");
         }
-        if (!saveBody(projectDoc)) {
-            System.err.println("saveProject:: body was not saved");
+        if (!saveBody(doc)) {
+            System.err.println("saveFile:: " + fileName + " body was not saved");
         }
 
         try (FileOutputStream out =
-                     new FileOutputStream(PATH + '\\' + projectFileName + ".xml")) {
-            writeFile(projectDoc, out);
+                     new FileOutputStream(PATH + '\\' + fileName + ".xml")) {
+            writeFile(doc, out);
         } catch (Exception e) {
-            System.err.println("saveProject:: " + e.getMessage());
-            return false;
-        }
-
-        if (!saveData()) {
-            System.err.println("Data was not saved");
-        }
-        return true;
-    }
-
-    private boolean saveData() {
-        Document dataDoc;
-
-        File dataFile = new File(PATH + '\\' + dataFileName + ".xml");
-        try {
-            dataDoc = docBuilder.parse(dataFile);
-            deleteIndentation(dataDoc);
-        } catch (Exception e) {
-            dataDoc = docBuilder.newDocument();
-            dataDoc.appendChild(dataDoc.createElement("data"));
-            System.out.println("data file is not found");
-        }
-
-        if (!saveHeader(dataDoc)) {
-            System.err.println("saveData:: header was not saved");
-        }
-        if (!saveBody(dataDoc)) {
-            //TODO handle group save failure
-            System.err.println("saveData:: body was not saved");
-        }
-
-        try (FileOutputStream out =
-                     new FileOutputStream(PATH + '\\' + dataFileName + ".xml")) {
-            writeFile(dataDoc, out);
-        } catch (Exception e) {
-            System.err.println("saveData:: " + e.getMessage());
+            System.err.println("saveFile:: " + e.getMessage());
             return false;
         }
 
         return true;
     }
-
 
     /**
-     * Saves data of object with key "body" stored in "dataSource" field.
+     * Saves data of body component from containers field.
      * <br/>Doc must have first child element.
-     * <br/>If first child element tag equals "project", will not check data validity and will
+     * <br/>If first child element tag equals projectFileName, will not check data validity and will
      * rewrite "group" tag.
-     * <br/>If tag equals "data", will perform data validation and append new group tag or prompt user
+     * <br/>If tag equals dataFileName, will perform data validation and append new group tag or prompt user
      * to rewrite existing.
      * <br/>If doc does not contain appropriate nodes, this method will create them.
      * @param doc Document in which data will be written.
@@ -151,7 +128,7 @@ public class ProjectFileManager {
     private boolean saveBody(Document doc) {
         Node root = doc.getFirstChild();
         if (root == null) {
-            System.err.println("saveBody:: docs first child is null");
+            System.err.println("saveBody:: root node is not found");
             return false;
         }
         boolean isProjectDoc = root.getNodeName().equals("project");
@@ -191,7 +168,7 @@ public class ProjectFileManager {
             }
         }
 
-        ManagedTable table = (ManagedTable) dataSources.get("body").getComponentMap().get("table");
+        ManagedTable table = (ManagedTable) containers.get("body").getComponentMap().get("table");
         bodyRoot.appendChild(
                 createGroupElement(doc, groupID, (ManagedTableModel) table.getModel())
         );
@@ -200,11 +177,11 @@ public class ProjectFileManager {
     }
 
     /**
-     * Saves data of object with key "header" stored in "dataSources" field.
+     * Saves data of header component from containers field.
      * <br/>Doc must have first child element.
-     * <br/>If first child element tag equals "project", will create properties tag for all components
+     * <br/>If first child element tag equals projectFileName, will create properties tag for all components
      * and place in them only selected items.
-     * <br/>If tag equals "data", will create properties tag only for JComboBox components
+     * <br/>If tag equals dataFileName, will create properties tag only for JComboBox components
      * and place in them all existing items.
      * <br/>If doc does not contain appropriate nodes, this method will create them.
      * <br/>If doc already contains header data, it will be rewritten.
@@ -213,12 +190,12 @@ public class ProjectFileManager {
     private boolean saveHeader(Document doc) {
         Node root = doc.getFirstChild();
         if (root == null) {
-            System.err.println("saveHeader:: docs first child is null");
+            System.err.println("saveHeader:: root node is not found");
             return false;
         }
         boolean isProjectDoc = root.getNodeName().equals("project");
 
-        //////////////////////////////Delete all nodes of header node///////////////////////////////
+        //Delete all nodes of header node
 
         NodeList nodes = ((Element) root).getElementsByTagName("header");
         Element headerRoot;
@@ -236,9 +213,9 @@ public class ProjectFileManager {
             root.appendChild(headerRoot);
         }
 
-        /////////////////////////////////Fetch data from components/////////////////////////////////
+        //Fetch data from components
 
-        HashMap<String, JComponent> componentMap = dataSources.get("header").getComponentMap();
+        HashMap<String, JComponent> componentMap = containers.get("header").getComponentMap();
         for (Map.Entry<String, JComponent> pair : componentMap.entrySet()) {
             Object[] data = null;
             if (pair.getValue() instanceof JTextField tf && isProjectDoc) {
@@ -272,14 +249,14 @@ public class ProjectFileManager {
 
     /**
      * Checks if existing data of component with key "table" is valid.
-     * This component is being searched for in object with key "body" stored in "dataSource" field.
+     * This component is being searched for in body component from containers field.
      * <br/>All possible errors are printed into standard error stream.
      * @return true if data is valid, false otherwise or if error occurred.
      */
     private boolean isGroupValid() {
-        Writable source = dataSources.get("body");
+        Writable source = containers.get("body");
         if (source == null) {
-            System.err.println("isGroupValid:: source 'body' not found");
+            System.err.println("isGroupValid:: container 'body' not found");
             return false;
         }
         JComponent tableObject = source.getComponentMap().get("table");
@@ -289,6 +266,7 @@ public class ProjectFileManager {
         }
         if (tableObject instanceof ManagedTable table) {
             if (!((ManagedTableModel) table.getModel()).isReadyToWrite()) {
+                //TODO prompt user that table cannot be saved
                 System.out.println("table contains invalid elements. Save discarded");
                 return false;
             }
@@ -303,16 +281,16 @@ public class ProjectFileManager {
 
     /**
      * Finds selected value of component with key "group".
-     * This component is being searched for in object with key "header" stored in "dataSource" field.
+     * This component is being searched for in header component from containers field.
      * <br/>All possible errors are printed into standard error stream.
      * @return Valid group id or null if error occurred.
      */
     private String findGroupID() {
         String groupName;
-        Writable source = dataSources.get("header");
+        Writable source = containers.get("header");
 
         if (source == null) {
-            System.err.println("findGroupName:: source 'header' not found");
+            System.err.println("findGroupName:: container 'header' not found");
             return null;
         }
         JComponent group = source.getComponentMap().get("group");
@@ -342,7 +320,7 @@ public class ProjectFileManager {
      * @param source Data that will be used for creation of student tags.
      * @return Element with "group" tag.
      */
-    private Element createGroupElement(Document doc, String groupID, ManagedTableModel source) {
+    private static Element createGroupElement(Document doc, String groupID, ManagedTableModel source) {
         Element newGroup = doc.createElement("group");
         if (groupID != null) {
             newGroup.setAttribute("id", groupID);
@@ -371,7 +349,7 @@ public class ProjectFileManager {
      * @param source Array of objects that will be placed inside property tag as a String.
      * @return Element with "property" tag.
      */
-    private Element createProperty(Document doc, String name, Object[] source) {
+    private static Element createProperty(Document doc, String name, Object[] source) {
         if (source == null) return null;
         Element newElement = doc.createElement("property");
         newElement.setAttribute("name", name);
@@ -389,7 +367,7 @@ public class ProjectFileManager {
      * Deletes all indentation nodes inside XML document.
      * @param doc Document that will be normalized.
      */
-    private void deleteIndentation(Document doc) {
+    private static void deleteIndentation(Document doc) {
         if (doc == null) {
             System.err.println("deleteIndentation:: doc is null");
             return;
@@ -402,7 +380,7 @@ public class ProjectFileManager {
      * Deletes all indentation nodes inside given node and all its descendants.
      * @param node Node that will be normalized.
      */
-    private void deleteIndentation(Node node) {
+    private static void deleteIndentation(Node node) {
         while (node != null) {
             deleteIndentation(node.getFirstChild());
             Node tmp = node;
@@ -414,7 +392,7 @@ public class ProjectFileManager {
         }
     }
 
-    private void writeFile(Document doc, FileOutputStream out) throws TransformerException {
+    private static void writeFile(Document doc, FileOutputStream out) throws TransformerException {
         TransformerFactory transformerFactory = TransformerFactory.newInstance();
         Transformer transformer = transformerFactory.newTransformer();
         transformer.setOutputProperty(OutputKeys.INDENT, "yes");
@@ -422,5 +400,130 @@ public class ProjectFileManager {
         StreamResult result = new StreamResult(out);
 
         transformer.transform(source, result);
+    }
+
+
+    /////////////////////////////////////////Load methods//////////////////////////////////////////
+
+
+    public void load() {
+        if (loadFile(dataFileName)) {
+            System.out.println(dataFileName + " was loaded successfully");
+        } else {
+            System.err.println(dataFileName + " was not loaded");
+        }
+
+        if (loadFile(projectFileName)) {
+            System.out.println(projectFileName + " was loaded successfully");
+        } else {
+            System.err.println(projectFileName + " was not loaded");
+        }
+    }
+
+    private boolean loadFile(String fileName) {
+        Document doc;
+
+        File dataFile = new File(PATH + '\\' + fileName + ".xml");
+        try {
+            doc = docBuilder.parse(dataFile);
+            deleteIndentation(doc);
+        } catch (Exception e) {
+            System.err.println(fileName + " file is not found");
+            return false;
+        }
+
+        Node root = doc.getFirstChild();
+        if (root == null) {
+            System.err.println("loadFile:: root node is not found");
+            return false;
+        }
+
+        Node sourceNode = root.getFirstChild();
+        if (sourceNode == null) {
+            System.err.println("loadFile:: source node is not found");
+            return false;
+        }
+
+        while (sourceNode != null) {
+            Writable destination = containers.get(sourceNode.getNodeName());
+            if (destination == null) {
+                System.err.println("loadFile:: source for key "
+                        + sourceNode.getNodeName() + " is not found");
+                return false;
+            }
+
+            if (!root.getNodeName().equals("data") || !sourceNode.getNodeName().equals("body")) {
+                parseNode(sourceNode, destination);
+            }
+            sourceNode = sourceNode.getNextSibling();
+        }
+
+        return true;
+    }
+
+    public void parseNode(Node root, Writable destination) {
+        Node contentNode = root.getFirstChild();
+        if (contentNode == null) {
+            System.err.println("parseNode:: node " + root + " is empty");
+            return;
+        }
+        Element contentElement = (Element) contentNode;
+
+        HashMap<String, JComponent> components = destination.getComponentMap();
+        while (contentElement != null) {
+            String tag = contentElement.getTagName();
+            if (tag.equals("property")) {
+                JComponent component = components.get(contentElement.getAttribute("name"));
+                String[] textContent = contentElement.getTextContent().split(",");
+                if (component instanceof JTextField textField) {
+                    textField.setText(textContent[0].equals("null") ?
+                            null : textContent[0]);
+                }
+                if (component instanceof JComboBox<?>) {
+                    JComboBox<String> comboBox = (JComboBox<String>) component;
+                    fillComboBox(comboBox, textContent);
+                    comboBox.setSelectedItem(textContent[0]);
+                }
+            }
+            else if (tag.equals("group")) {
+                JComponent component = components.get("table");
+                if (component instanceof ManagedTable table) {
+                    ((ManagedTableModel) table.getModel()).clear();
+                    Element studentElement = (Element) contentElement.getFirstChild();
+                    while (studentElement != null) {
+                        Student student = new Student(
+                                Integer.parseInt(studentElement.getAttribute("id")),
+                                new Data(Data.Type.Name, studentElement.getTextContent()),
+                                new Data(Data.Type.SerialNumber,
+                                        studentElement.getAttribute("serialNumber")),
+                                studentElement.getAttribute("result"),
+                                new Data(Data.Type.Mark, studentElement.getAttribute("mark"))
+                        );
+                        ((ManagedTableModel) table.getModel()).addRow(student);
+
+                        studentElement = (Element) studentElement.getNextSibling();
+                    }
+                }
+            }
+
+            contentElement = (Element) contentElement.getNextSibling();
+        }
+    }
+
+    private static void fillComboBox(JComboBox<String> comboBox, String[] textContent) {
+        ComboBoxModel<String> model = comboBox.getModel();
+        for (String s : textContent) {
+            int j = 0;
+            for (; j < model.getSize(); j++) {
+                if (s.equals(model.getElementAt(j))) {
+                    break;
+                }
+            }
+            if (j == model.getSize()) {
+                if (!s.equals("null")) {
+                    comboBox.addItem(s);
+                }
+            }
+        }
     }
 }

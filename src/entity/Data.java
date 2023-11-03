@@ -9,18 +9,27 @@ public class Data {
     public enum Type {
         Group, Name, Faculty, Discipline, Year, Hours, Date, SerialNumber, Mark
     }
-    private String str;
+    private String text;
     private Type type;
     private boolean valid;
 
     public Data(Type type) {
+        this(type, null);
+    }
+
+    public Data(Type type, String content) {
         this.type = type;
-        str = null;
-        valid = false;
+        this.text = content;
+        try {
+            Validator.validate(this.text,  this.type);
+            valid = true;
+        } catch (Exception e) {
+            valid = false;
+        }
     }
 
     public Data(Data prototype) {
-        this.str = prototype.str;
+        this.text = prototype.text;
         this.type = prototype.type;
         this.valid = prototype.valid;
     }
@@ -33,25 +42,21 @@ public class Data {
      * Sets text of the data instance
      * Note: text is ALWAYS assigned, if passed string was invalid,
      * isValid method will return false
-     * @param str string to assign
+     * @param text string to assign
      * @throws IllegalArgumentException failed validation message
      */
-    public void setText(String str) throws IllegalArgumentException {
-        this.str = str;
+    public void setText(String text) throws IllegalArgumentException {
+        this.text = text;
         valid = false;
-        Validator.validate(str, type);
+        Validator.validate(text, type);
         valid = true;
     }
 
     public String getText() {
-        return str;
+        return text;
     }
 
     public Type getType() {
         return type;
-    }
-
-    public void setType(Type type) {
-        this.type = type;
     }
 }

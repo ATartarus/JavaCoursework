@@ -104,6 +104,11 @@ public class ManagedTableModel extends AbstractTableModel {
         return tableData.get(row);
     }
 
+    public void clear() {
+        tableData.clear();
+        fireTableRowsDeleted(0, getRowCount());
+    }
+
     public boolean isReadyToWrite() {
         if (tableData.isEmpty()) {
             return false;

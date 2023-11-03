@@ -41,11 +41,8 @@ public class Main {
         body.addTableModelListener(footer::updateData);
 
         fileManager = new ProjectFileManager(new Writable[]{header, body, footer});
-/*        try {
-            loadProject();
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-        }*/
+        fileManager.load();
+
         mainWindow.pack();
         mainWindow.setVisible(true);
         mainWindow.setMinimumSize(mainWindow.getSize());
@@ -56,26 +53,26 @@ public class Main {
         JMenuBar menuBar = new JMenuBar();
         mainWindow.setJMenuBar(menuBar);
 
-        JMenu file = new JMenu("File");
-        JMenu imp = new JMenu("Import");
+        JMenu file = new JMenu("Project");
+        JMenu export = new JMenu("Export");
         JMenu about = new JMenu("About");
 
         menuBar.add(file);
-        menuBar.add(imp);
+        menuBar.add(export);
         menuBar.add(about);
 
-        JMenuItem item = new JMenuItem("Create");
+        JMenuItem item = new JMenuItem("New");
         file.add(item);
         item = new JMenuItem("Open");
+        item.addActionListener(e -> fileManager.load());
         file.add(item);
         item = new JMenuItem("Save");
-        item.addActionListener(e -> fileManager.saveProject());
+        item.addActionListener(e -> fileManager.save());
         file.add(item);
         item = new JMenuItem("SaveAs");
         file.add(item);
 
-        imp.add(new JMenuItem("From txt"));
-        imp.add(new JMenuItem("From mySQL"));
+        export.add(new JMenuItem("As docx"));
 
         about.add(new JMenuItem("Author"));
         about.add(new JMenuItem("Program"));
