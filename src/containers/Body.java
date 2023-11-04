@@ -89,7 +89,7 @@ public class Body extends ComponentManager implements Writable {
 
             if (rows == 0 ||
                 (tableModel.getValueAt(rows - 1, 1) instanceof Data data &&
-                data.isValid() && !data.getText().isEmpty())) {
+                data.isValid())) {
                 tableModel.addRow(null);
                 return;
             }

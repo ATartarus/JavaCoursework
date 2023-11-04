@@ -16,10 +16,11 @@ public class LabelRenderer extends DefaultTableCellRenderer {
             } else {
                 setHorizontalAlignment(LEFT);
             }
-            if (data.isValid() || data.getText() == null) {
-                c.setBorder(null);
-            } else {
+
+            if (data.isShowErrorNeeded()) {
                 c.setBorder(BorderFactory.createLineBorder(Color.red, 2));
+            } else {
+                c.setBorder(null);
             }
             if (hasFocus) {
                 c.setBackground(table.getSelectionBackground());

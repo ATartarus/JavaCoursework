@@ -41,7 +41,7 @@ public class Main {
         body.addTableModelListener(footer::updateData);
 
         fileManager = new ProjectFileManager(new Writable[]{header, body, footer});
-        fileManager.load();
+        //fileManager.load();
 
         mainWindow.pack();
         mainWindow.setVisible(true);

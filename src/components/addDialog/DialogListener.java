@@ -5,5 +5,5 @@ package components.addDialog;
  * and perform some actions after validation
  */
 public interface DialogListener {
-    void tryPerformAction(Object item) throws Exception;
+    void tryAddItem(Object item) throws Exception;
 }

@@ -1,25 +1,32 @@
 package components.addDialog;
 
+import components.managedTextField.ManagedTextField;
+import entity.Data;
 import entity.Validator;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 
 public class AddDialog extends JDialog {
     private final JPanel container;
-    private final JTextField textField;
+    private final ManagedTextField textField;
     private final JButton okButton;
     private final JButton cancelButton;
     public DialogListener listener;
-    public AddDialog(JFrame parent, String title, boolean modal) {
+    public AddDialog(JFrame parent, String title, boolean modal, Data.Type validation) {
         super(parent, title, modal);
         container = new JPanel(new FlowLayout());
-        textField = new JTextField(20);
+        textField = new ManagedTextField(validation, 20);
         okButton = new JButton("OK");
         cancelButton = new JButton("Cancel");
 
+        ActionListener[] listeners = textField.getActionListeners();
+        for (ActionListener listener : listeners) {
+            textField.removeActionListener(listener);
+        }
         config();
     }
 
@@ -57,9 +64,14 @@ public class AddDialog extends JDialog {
 
     private void onOKClick() {
         try {
-            listener.tryPerformAction(textField.getText());
-        } catch (Exception e) {
-            Validator.showValidationError(this, e.getMessage(), "Error");
+            Data value = textField.getData();
+            if (value.isValid()) {
+                listener.tryAddItem(value.getText());
+            } else {
+                throw new Exception(value.getValidationMessage());
+            }
+        } catch (Exception exception) {
+            Validator.showValidationError(this, exception.getMessage(), "Error");
             return;
         }
         dispose();

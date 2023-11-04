@@ -513,6 +513,7 @@ public class ProjectFileManager {
     private static void fillComboBox(JComboBox<String> comboBox, String[] textContent) {
         ComboBoxModel<String> model = comboBox.getModel();
         for (String s : textContent) {
+            if (s.isBlank()) continue;
             int j = 0;
             for (; j < model.getSize(); j++) {
                 if (s.equals(model.getElementAt(j))) {

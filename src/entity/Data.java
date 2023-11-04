@@ -12,6 +12,7 @@ public class Data {
     private String text;
     private Type type;
     private boolean valid;
+    private String message;
 
     public Data(Type type) {
         this(type, null);
@@ -19,23 +20,22 @@ public class Data {
 
     public Data(Type type, String content) {
         this.type = type;
-        this.text = content;
-        try {
-            Validator.validate(this.text,  this.type);
-            valid = true;
-        } catch (Exception e) {
-            valid = false;
-        }
+        setText(content);
     }
 
     public Data(Data prototype) {
         this.text = prototype.text;
         this.type = prototype.type;
         this.valid = prototype.valid;
+        this.message = prototype.message;
     }
 
     public boolean isValid() {
         return valid;
+    }
+
+    public boolean isShowErrorNeeded() {
+        return !valid && text != null && !text.isEmpty();
     }
 
     /**
@@ -45,11 +45,16 @@ public class Data {
      * @param text string to assign
      * @throws IllegalArgumentException failed validation message
      */
-    public void setText(String text) throws IllegalArgumentException {
+    public void setText(String text) {
         this.text = text;
-        valid = false;
-        Validator.validate(text, type);
-        valid = true;
+        try {
+            Validator.validate(text, type);
+            message = null;
+            valid = true;
+        } catch (Exception e) {
+            message = e.getMessage();
+            valid = false;
+        }
     }
 
     public String getText() {
@@ -58,5 +63,9 @@ public class Data {
 
     public Type getType() {
         return type;
+    }
+
+    public String getValidationMessage() {
+        return message;
     }
 }

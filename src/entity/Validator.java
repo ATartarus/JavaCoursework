@@ -3,6 +3,7 @@ package entity;
 import javax.swing.*;
 import java.awt.*;
 import java.util.EnumMap;
+import java.util.Objects;
 import java.util.regex.*;
 
 public final class Validator {
@@ -13,9 +14,9 @@ public final class Validator {
     static {
         patterns = new EnumMap<>(Data.Type.class);
         patterns.put(Data.Type.Group, "\\d+");
-        patterns.put(Data.Type.Name, "[а-яА-Я]+\\s[а-яА-Я]\\.\\s?[а-яА-Я]\\.");
+        patterns.put(Data.Type.Name, "[а-яА-Я]+\\s[а-яА-Я]((\\.)|(\\.\\s)|(\\s))[а-яА-Я]\\.?");
         patterns.put(Data.Type.Faculty, "[а-яА-Я\\s]+");
-        patterns.put(Data.Type.Discipline, "[а-яА-Я\\s]+");
+        patterns.put(Data.Type.Discipline, "[а-яА-Яa-zA-Z\\s]+");
         patterns.put(Data.Type.Year, "[12][0-9]{3}/[12][0-9]{3}");
         patterns.put(Data.Type.Hours, "([12]?[0-9]{2}$)|([12]?[0-9]{2}\\s?/\\s?[1-6]\\s?з\\.е\\.)");
         patterns.put(Data.Type.Date, "[0-3][0-9]\\.[01][0-9]\\.[12][0-9]{3}");
@@ -39,9 +40,14 @@ public final class Validator {
     }
 
     public static void validate(Object obj, Data.Type type) throws IllegalArgumentException {
-        if (obj == null) return;
+        System.out.println("Validator:: validate");
+        if (obj == null) {
+            throw new IllegalArgumentException("Object is null");
+        }
         if (obj instanceof String str) {
-            if (str.isEmpty()) return;
+            if (str.isEmpty()) {
+                throw new IllegalArgumentException("String is empty");
+            }
             Pattern pattern = Pattern.compile(patterns.get(type));
             Matcher matcher = pattern.matcher(str);
             if (!matcher.matches())
@@ -49,5 +55,40 @@ public final class Validator {
         } else {
             throw new IllegalArgumentException("Obj is not a string");
         }
+    }
+
+    public static String getFormattedString(String source, Data.Type type) {
+        if (source == null || type == null) return null;
+
+        StringBuilder result = new StringBuilder();
+        if (type == Data.Type.Name) {
+            int pivot = source.indexOf(' ') + 1;
+            result.append(source.substring(0, 1).toUpperCase())
+                    .append(source.substring(1, pivot).toLowerCase())
+                    .append(source.substring(pivot, pivot + 1).toUpperCase())
+                    .append('.')
+                    .append(source.substring(source.length() - 1).toUpperCase())
+                    .append('.');
+        }
+        else if (type == Data.Type.Faculty || type == Data.Type.Discipline) {
+            String[] words = source.split("\\s");
+            for (String word : words) {
+                if (word.length() == 1) {
+                    result.append(word).append(' ');
+                } else {
+                    result.append(word.substring(0, 1).toUpperCase())
+                            .append(word.substring(1).toLowerCase())
+                            .append(' ');
+                }
+            }
+            if (result.charAt(result.length() - 1) == ' ') {
+                result.deleteCharAt(result.length() - 1);
+            }
+        }
+        else {
+            result.append(source);
+        }
+
+        return result.toString();
     }
 }

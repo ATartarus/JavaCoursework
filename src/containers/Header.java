@@ -1,6 +1,7 @@
 package containers;
 
 import components.addDialog.AddDialog;
+import components.addDialog.DialogListener;
 import entity.Data;
 import components.managedTextField.ManagedTextField;
 import entity.Validator;
@@ -8,6 +9,7 @@ import entity.Validator;
 import javax.swing.*;
 import java.awt.*;
 import java.util.HashMap;
+import java.util.Locale;
 
 public class Header extends ComponentManager implements Writable {
     private JComboBox<String> semesterComboBox;
@@ -189,74 +191,46 @@ public class Header extends ComponentManager implements Writable {
     protected void configEventListeners() {
         groupButton.addActionListener(e -> {
             AddDialog dial = new AddDialog(
-                    parent, "Добавьте новую группу", true
+                    parent, "Добавьте новую группу", true, Data.Type.Group
             );
 
             dial.addDialogListener(item -> {
-                Validator.validate(item, Data.Type.Group);
                 tryAddItem(item, groupComboBox);
             });
-
             dial.setVisible(true);
         });
 
+
         facultyButton.addActionListener(e -> {
             AddDialog dial = new AddDialog(
-                    parent, "Добавьте новый факультет", true
+                    parent, "Добавьте новый факультет", true, Data.Type.Faculty
             );
 
             dial.addDialogListener(item -> {
-                Validator.validate(item, Data.Type.Faculty);
-                String[] words = ((String)item).split("\\s");
-                StringBuilder tmp = new StringBuilder();
-                for (String word : words) {
-                    tmp.append(word.substring(0, 1).toUpperCase()).
-                            append(word.substring(1).toLowerCase()).append(' ');
-                }
-                item = tmp.toString();
                 tryAddItem(item, facultyComboBox);
             });
-
             dial.setVisible(true);
         });
 
         disciplineButton.addActionListener(e -> {
             AddDialog dial = new AddDialog(
-                    parent, "Добавьте новую дисциплину", true
+                    parent, "Добавьте новую дисциплину", true, Data.Type.Discipline
             );
 
             dial.addDialogListener(item -> {
-                Validator.validate(item, Data.Type.Discipline);
-                String[] words = ((String)item).split("\\s");
-                StringBuilder tmp = new StringBuilder();
-                for (String word : words) {
-                    tmp.append(word.substring(0, 1).toUpperCase()).
-                            append(word.substring(1).toLowerCase()).append(" ");
-                }
-                item = tmp.toString();
                 tryAddItem(item, disciplineComboBox);
             });
-
             dial.setVisible(true);
         });
 
         academicButton.addActionListener(e -> {
             AddDialog dial = new AddDialog(
-                    parent, "Добавьте нового преподавателя", true
+                    parent, "Добавьте нового преподавателя", true, Data.Type.Name
             );
 
             dial.addDialogListener(item -> {
-                Validator.validate(item, Data.Type.Name);
-                String tmp = (String)item;
-                int ind = tmp.indexOf('.');
-                String dummy = tmp.charAt(ind + 1) == ' ' ? ""  : " ";
-                item =  tmp.substring(0, 1).toUpperCase() +
-                        tmp.substring(1, ind - 1).toLowerCase() +
-                        tmp.substring(ind - 1, ind + 1).toUpperCase() + dummy +
-                        tmp.substring(ind + 1).toUpperCase();
                 tryAddItem(item, academicComboBox);
             });
-
             dial.setVisible(true);
         });
     }
