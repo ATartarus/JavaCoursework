@@ -17,7 +17,7 @@ public class LabelRenderer extends DefaultTableCellRenderer {
                 setHorizontalAlignment(LEFT);
             }
 
-            if (data.isShowErrorNeeded()) {
+            if (data.isErrorDisplayNeeded()) {
                 c.setBorder(BorderFactory.createLineBorder(Color.red, 2));
             } else {
                 c.setBorder(null);

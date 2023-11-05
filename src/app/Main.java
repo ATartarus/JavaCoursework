@@ -40,10 +40,11 @@ public class Main {
 
         body.addTableModelListener(footer::updateData);
 
-        fileManager = new ProjectFileManager(new Writable[]{header, body, footer});
+        fileManager = new ProjectFileManager(mainWindow.getRootPane(), new Writable[]{header, body, footer});
         //fileManager.load();
 
         mainWindow.pack();
+        mainWindow.setLocationRelativeTo(null);
         mainWindow.setVisible(true);
         mainWindow.setMinimumSize(mainWindow.getSize());
     }
@@ -53,24 +54,46 @@ public class Main {
         JMenuBar menuBar = new JMenuBar();
         mainWindow.setJMenuBar(menuBar);
 
-        JMenu file = new JMenu("Project");
+        JMenu project = new JMenu("Project");
+        JMenu group = new JMenu("Group");
         JMenu export = new JMenu("Export");
         JMenu about = new JMenu("About");
 
-        menuBar.add(file);
+        menuBar.add(project);
+        menuBar.add(group);
         menuBar.add(export);
         menuBar.add(about);
 
         JMenuItem item = new JMenuItem("New");
-        file.add(item);
+        project.add(item);
         item = new JMenuItem("Open");
-        item.addActionListener(e -> fileManager.load());
-        file.add(item);
+        item.addActionListener(e -> {
+            if (fileManager.chooseProjectFile(ProjectFileManager.OPEN_MODE)) {
+                fileManager.load();
+            }
+        });
+        project.add(item);
         item = new JMenuItem("Save");
-        item.addActionListener(e -> fileManager.save());
-        file.add(item);
-        item = new JMenuItem("SaveAs");
-        file.add(item);
+        item.addActionListener(e -> {
+            fileManager.save();
+        });
+        project.add(item);
+        item = new JMenuItem("Save As");
+        item.addActionListener(e -> {
+            if (fileManager.chooseProjectFile(ProjectFileManager.SAVE_MODE)) {
+                fileManager.save();
+            }
+        });
+        project.add(item);
+
+        item = new JMenuItem("Save");
+        item.addActionListener(e -> {
+            fileManager.saveGroup();
+        });
+        group.add(item);
+        item = new JMenuItem("Load");
+        group.add(item);
+
 
         export.add(new JMenuItem("As docx"));
 

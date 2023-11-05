@@ -11,6 +11,10 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.filechooser.FileSystemView;
+import javax.swing.filechooser.FileView;
+import javax.swing.plaf.basic.BasicFileChooserUI;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -20,33 +24,37 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+import java.awt.*;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
 @SuppressWarnings("ReassignedVariable")
 public class ProjectFileManager {
+    public static final int OPEN_MODE = 0;
+    public static final int SAVE_MODE = 1;
     private String PATH;
-    private String folderName;
     private String projectFileName;
     private final String dataFileName;
     private final HashMap<String, Writable> containers;
+    private final JRootPane windowRootPane;
     private DocumentBuilder docBuilder;
 
 
-    public ProjectFileManager(Writable[] containers) {
-        this(containers, System.getProperty("user.dir"));
+    public ProjectFileManager(JRootPane rootPane, Writable[] containers) {
+        this(rootPane, containers, System.getProperty("user.dir"));
     }
 
-    public ProjectFileManager(Writable[] containers, String PATH) {
-        this.folderName = "data";
+    public ProjectFileManager(JRootPane rootPane, Writable[] containers, String PATH) {
         this.containers = new HashMap<>();
         for (Writable source : containers) {
             this.containers.put(source.getClassName(), source);
         }
-        this.PATH = PATH + '\\' + folderName;
-        this.projectFileName = "project";
+        this.windowRootPane = rootPane;
+        this.PATH = PATH + "\\data";
+        this.projectFileName = null;
         this.dataFileName = "data";
 
         DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
@@ -57,18 +65,19 @@ public class ProjectFileManager {
         }
     }
 
-    public void setFolderName(String name) {
-        this.folderName = name;
-        this.PATH = this.PATH.substring(0, this.PATH.lastIndexOf('\\') + 1) + this.folderName;
-    }
-
-    public void setProjectFileName(String projectFileName) {
+    private void setProjectFileName(String projectFileName) {
         this.projectFileName = projectFileName;
     }
 
     /////////////////////////////////////////Save methods//////////////////////////////////////////
 
     public void save() {
+        if (projectFileName == null) {
+            if (!chooseProjectFile(SAVE_MODE)) {
+                return;
+            }
+        }
+
         if (saveFile(dataFileName)) {
             System.out.println(dataFileName + " was saved successfully");
         } else {
@@ -99,7 +108,7 @@ public class ProjectFileManager {
         if (!saveHeader(doc)) {
             System.err.println("saveFile:: " + fileName + " header was not saved");
         }
-        if (!saveBody(doc)) {
+        if (!fileName.equals(dataFileName) && !saveBody(doc)) {
             System.err.println("saveFile:: " + fileName + " body was not saved");
         }
 
@@ -162,9 +171,17 @@ public class ProjectFileManager {
                 bodyRoot.removeChild(tmp);
             }
             else if (tmp.getAttribute("id").equals(groupID)) {
-                //TODO Prompt user to rewrite group
-
-                bodyRoot.removeChild(tmp);
+                int answer = JOptionPane.showConfirmDialog(windowRootPane,
+                        "<html>Группа с данным номером уже существует<br>Перезаписать?</html>",
+                        "Warning",
+                        JOptionPane.YES_NO_OPTION,
+                        JOptionPane.QUESTION_MESSAGE
+                );
+                if (answer == JOptionPane.OK_OPTION) {
+                    bodyRoot.removeChild(tmp);
+                } else {
+                    return false;
+                }
             }
         }
 
@@ -219,7 +236,7 @@ public class ProjectFileManager {
         for (Map.Entry<String, JComponent> pair : componentMap.entrySet()) {
             Object[] data = null;
             if (pair.getValue() instanceof JTextField tf && isProjectDoc) {
-                data = new Object[]{tf.getText()};
+                data = new Object[]{tf.getText().isEmpty() ? "null" : tf.getText()};
             }
             else if (pair.getValue() instanceof JComboBox<?> cb) {
                 if (isProjectDoc) {
@@ -266,7 +283,13 @@ public class ProjectFileManager {
         }
         if (tableObject instanceof ManagedTable table) {
             if (!((ManagedTableModel) table.getModel()).isReadyToWrite()) {
-                //TODO prompt user that table cannot be saved
+                JOptionPane.showMessageDialog(
+                        windowRootPane,
+                        "<html>Для сохранения группы второй и третий столбцы<br>" +
+                                "должны содержать валидные значения</html>",
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE
+                );
                 System.out.println("table contains invalid elements. Save discarded");
                 return false;
             }
@@ -402,9 +425,109 @@ public class ProjectFileManager {
         transformer.transform(source, result);
     }
 
+    public boolean saveGroup() {
+        Document doc;
+
+        File dataFile = new File(PATH + '\\' + dataFileName + ".xml");
+        try {
+            doc = docBuilder.parse(dataFile);
+            deleteIndentation(doc);
+        } catch (Exception e) {
+            doc = docBuilder.newDocument();
+            doc.appendChild(doc.createElement("data"));
+            System.out.println("saveGroup:: " + dataFileName + " file is not found");
+        }
+
+        if (!saveBody(doc)) {
+            return false;
+        }
+        try (FileOutputStream out =
+                     new FileOutputStream(PATH + '\\' + dataFileName + ".xml")) {
+            writeFile(doc, out);
+        } catch (Exception e) {
+            System.err.println("saveFile:: " + e.getMessage());
+            return false;
+        }
+        return true;
+    }
+
+    public boolean loadGroup() {
+        Document doc;
+
+        File dataFile = new File(PATH + '\\' + dataFileName + ".xml");
+        try {
+            doc = docBuilder.parse(dataFile);
+            deleteIndentation(doc);
+        } catch (Exception e) {
+            System.err.println("loadGroup::  " + dataFileName + " file is not found");
+            return false;
+        }
+
+        return true;
+    }
+
 
     /////////////////////////////////////////Load methods//////////////////////////////////////////
 
+    public boolean chooseProjectFile(int mode) {
+        File pathFile = new File(PATH);
+        JFileChooser fileChooser = null;
+        int chooseResult;
+
+        if (mode == OPEN_MODE) {
+            fileChooser = new JFileChooser();
+            setUpFileChooser(fileChooser, pathFile);
+            chooseResult = fileChooser.showOpenDialog(windowRootPane);
+        }
+        else if (mode == SAVE_MODE) {
+            fileChooser = new JFileChooser() {
+                @Override
+                public void approveSelection() {
+                    if (getSelectedFile().exists()) {
+                        int answer = JOptionPane.showConfirmDialog(
+                                this,
+                                "Rewrite file?",
+                                "File already exists",
+                                JOptionPane.OK_CANCEL_OPTION,
+                                JOptionPane.QUESTION_MESSAGE
+                        );
+                        if (answer == JOptionPane.CANCEL_OPTION) {
+                            return;
+                        }
+                    }
+                    super.approveSelection();
+                }
+            };
+            setUpFileChooser(fileChooser, pathFile);
+            chooseResult = fileChooser.showSaveDialog(windowRootPane);
+        }
+        else {
+            System.err.println("chooseProjectFile:: unsupported mode");
+            return false;
+        }
+
+
+        if (chooseResult == JFileChooser.APPROVE_OPTION) {
+            String selectedFileName = fileChooser.getSelectedFile().getName();
+            setProjectFileName(selectedFileName.substring(0, selectedFileName.indexOf(".")));
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    private static void setUpFileChooser(JFileChooser fileChooser, File defaultDir) {
+        fileChooser.setCurrentDirectory(defaultDir);
+        fileChooser.setAcceptAllFileFilterUsed(false);
+        fileChooser.setFileFilter(new FileNameExtensionFilter("XML files (.xml)", "xml"));
+        fileChooser.setFileView(new FileView() {
+            @Override
+            public Boolean isTraversable(File f) {
+                return defaultDir.equals(f);
+            }
+        });
+    }
 
     public void load() {
         if (loadFile(dataFileName)) {

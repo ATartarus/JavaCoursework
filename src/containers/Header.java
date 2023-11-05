@@ -1,15 +1,13 @@
 package containers;
 
 import components.addDialog.AddDialog;
-import components.addDialog.DialogListener;
 import entity.Data;
 import components.managedTextField.ManagedTextField;
-import entity.Validator;
+import exceptions.ValidationException;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.HashMap;
-import java.util.Locale;
 
 public class Header extends ComponentManager implements Writable {
     private JComboBox<String> semesterComboBox;
@@ -195,7 +193,7 @@ public class Header extends ComponentManager implements Writable {
             );
 
             dial.addDialogListener(item -> {
-                tryAddItem(item, groupComboBox);
+                addItem(item, groupComboBox);
             });
             dial.setVisible(true);
         });
@@ -207,7 +205,7 @@ public class Header extends ComponentManager implements Writable {
             );
 
             dial.addDialogListener(item -> {
-                tryAddItem(item, facultyComboBox);
+                addItem(item, facultyComboBox);
             });
             dial.setVisible(true);
         });
@@ -218,7 +216,7 @@ public class Header extends ComponentManager implements Writable {
             );
 
             dial.addDialogListener(item -> {
-                tryAddItem(item, disciplineComboBox);
+                addItem(item, disciplineComboBox);
             });
             dial.setVisible(true);
         });
@@ -229,7 +227,7 @@ public class Header extends ComponentManager implements Writable {
             );
 
             dial.addDialogListener(item -> {
-                tryAddItem(item, academicComboBox);
+                addItem(item, academicComboBox);
             });
             dial.setVisible(true);
         });
@@ -297,19 +295,19 @@ public class Header extends ComponentManager implements Writable {
     }
 
     /**
-     * Tries to add item to combobox. If item already exists throws RuntimeException
+     * Tries to add str to combobox. If str already exists throws RuntimeException
      */
-    private void tryAddItem(Object item, JComboBox<String> comboBox) throws RuntimeException {
-        if (item == null)
-            throw new RuntimeException("item is null");
-        if (item instanceof String str && str.isEmpty()) {
-            throw new RuntimeException("Элемент не может быть пустым");
+    private void addItem(String str, JComboBox<String> comboBox) throws ValidationException {
+        if (str == null || str.isBlank()) {
+            throw new ValidationException("Элемент не может быть пустым");
         }
+
         ComboBoxModel<String> model = comboBox.getModel();
         for (int i = 0; i < model.getSize(); i++) {
-            if (model.getElementAt(i).equals(item))
-                throw new RuntimeException("Элемент уже существует");
+            if (model.getElementAt(i).equals(str))
+                throw new ValidationException("Элемент уже существует");
         }
-        comboBox.addItem(item.toString());
+        comboBox.addItem(str);
+        comboBox.setSelectedItem(str);
     }
 }

@@ -2,7 +2,7 @@ package components.addDialog;
 
 import components.managedTextField.ManagedTextField;
 import entity.Data;
-import entity.Validator;
+import exceptions.ValidationException;
 
 import javax.swing.*;
 import java.awt.*;
@@ -63,15 +63,22 @@ public class AddDialog extends JDialog {
     }
 
     private void onOKClick() {
+        Data userInput = new Data(textField.getData());
         try {
-            Data value = textField.getData();
-            if (value.isValid()) {
-                listener.tryAddItem(value.getText());
+            if (userInput.isValid()) {
+                textField.formatData();
+                listener.addItem(textField.getText());
             } else {
-                throw new Exception(value.getValidationMessage());
+                throw new ValidationException(userInput.getValidationMessage());
             }
-        } catch (Exception exception) {
-            Validator.showValidationError(this, exception.getMessage(), "Error");
+        } catch (ValidationException exception) {
+            textField.setText(userInput.getText());
+            JOptionPane.showMessageDialog(
+                    this,
+                    exception.getMessage(),
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE
+            );
             return;
         }
         dispose();

@@ -8,8 +8,6 @@ import javax.swing.border.Border;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 
@@ -37,7 +35,7 @@ public class ManagedTextField extends JTextField {
     public void setText(String t) {
         super.setText(t);
         data.setText(t);
-        setBorder(data.isShowErrorNeeded() ? invalidBorder : validBorder);
+        setBorder(data.isErrorDisplayNeeded() ? invalidBorder : validBorder);
     }
 
     @Override
@@ -46,18 +44,18 @@ public class ManagedTextField extends JTextField {
     }
 
     public Data getData() {
-        setText(super.getText());
+        updateData();
         return data;
     }
 
     public void setValidBorder(Border border) {
         validBorder = border;
-        setBorder(data.isShowErrorNeeded() ? invalidBorder : validBorder);
+        setBorder(data.isErrorDisplayNeeded() ? invalidBorder : validBorder);
     }
 
     public void setInvalidBorder(Border border) {
         invalidBorder = border;
-        setBorder(data.isShowErrorNeeded() ? invalidBorder : validBorder);
+        setBorder(data.isErrorDisplayNeeded() ? invalidBorder : validBorder);
     }
 
 
@@ -78,43 +76,57 @@ public class ManagedTextField extends JTextField {
         });
 
         addActionListener(e -> {
-            validateText(true);
+            checkData(true);
             formatData();
         });
 
         timer.addActionListener(ev -> {
-            if (this.hasFocus()) {
-                validateText(false);
-            }
-        });
-
-        addFocusListener(new FocusListener() {
-            @Override
-            public void focusGained(FocusEvent e) {}
-
-            @Override
-            public void focusLost(FocusEvent e) {
-                formatData();
-            }
+            checkData(false);
         });
     }
 
-    public void validateText(boolean showMessage) {
+    /**
+     * Updates data and checks its validity.
+     * <br/>Stops validation timer and sets appropriate border.
+     * @param showMessage if true will show message in case data is invalid.
+     */
+    public void checkData(boolean showMessage) {
         timer.stop();
-        System.out.println("ManagedTextField:: validation");
-        data.setText(super.getText());
-        if (showMessage) {
-            Validator.showValidationError(
-                    this.getParent(), data.getValidationMessage(), "Error"
+        //System.out.println("ManagedTextField:: checkData");
+        updateData();
+        if (showMessage && !data.isValid()) {
+            JOptionPane.showMessageDialog(
+                    this.getParent(),
+                    data.getValidationMessage(),
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE
             );
         }
-        setBorder(data.isShowErrorNeeded() ? invalidBorder : validBorder);
+        setBorder(data.isErrorDisplayNeeded() ? invalidBorder : validBorder);
     }
 
+    /**
+     * Sets data text to match JTextFiled text.
+     * Unlike JTextField value data is not changed after each keystroke,
+     * so call to this method is essential in order to store in data actual value.
+     */
+    private void updateData() {
+        if (!super.getText().equals(data.getText())) {
+            data.setText(super.getText());
+        }
+    }
+
+
+    /**
+     * If data is valid, changes its format according to the data type.
+     */
     public void formatData() {
+        updateData();
         if (data.isValid()) {
             String newText = Validator.getFormattedString(data.getText(), data.getType());
-            setText(newText);
+            if (!newText.equals(getText())) {
+                setText(newText);
+            }
         }
     }
 }

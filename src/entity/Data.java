@@ -1,5 +1,7 @@
 package entity;
 
+import exceptions.ValidationException;
+
 /**
  * Represents typed String with auto-validation
  * String is always stored in its original form despite validation result
@@ -30,28 +32,37 @@ public class Data {
         this.message = prototype.message;
     }
 
+    /**
+     * Checks if data is valid.
+     * <br/>Null and empty string considered invalid.
+     * @return true if valid, false otherwise.
+     */
     public boolean isValid() {
         return valid;
     }
 
-    public boolean isShowErrorNeeded() {
+    /**
+     * Checks conditions to see if an error should be displayed.
+     * @return true if error should be displayed, otherwise false.
+     */
+    public boolean isErrorDisplayNeeded() {
         return !valid && text != null && !text.isEmpty();
     }
 
     /**
-     * Sets text of the data instance
+     * Sets text of the data instance.
      * Note: text is ALWAYS assigned, if passed string was invalid,
-     * isValid method will return false
-     * @param text string to assign
-     * @throws IllegalArgumentException failed validation message
+     * isValid method will return false.
+     * @param text string to assign.
      */
     public void setText(String text) {
         this.text = text;
         try {
+            System.out.println("Data::setText:: " + type + " validate");
             Validator.validate(text, type);
             message = null;
             valid = true;
-        } catch (Exception e) {
+        } catch (ValidationException e) {
             message = e.getMessage();
             valid = false;
         }

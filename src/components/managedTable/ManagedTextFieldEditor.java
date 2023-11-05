@@ -32,6 +32,9 @@ public class ManagedTextFieldEditor extends DefaultCellEditor {
 
     @Override
     public Object getCellEditorValue() {
+        if (component.getData().isValid()) {
+            component.formatData();
+        }
         return component.getData();
     }
 
@@ -48,7 +51,7 @@ public class ManagedTextFieldEditor extends DefaultCellEditor {
 
     @Override
     public boolean stopCellEditing() {
-        component.validateText(false);
+        component.checkData(false);
         return super.stopCellEditing();
     }
 }

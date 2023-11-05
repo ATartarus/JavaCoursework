@@ -1,9 +1,8 @@
 package entity;
 
-import javax.swing.*;
-import java.awt.*;
+import exceptions.ValidationException;
+
 import java.util.EnumMap;
-import java.util.Objects;
 import java.util.regex.*;
 
 public final class Validator {
@@ -35,25 +34,15 @@ public final class Validator {
         messages.put(Data.Type.Mark, "Оценка не соответствует формату");
     }
 
-    public static void showValidationError(Component parent, String message, String title) {
-        JOptionPane.showMessageDialog(parent, message, title, JOptionPane.ERROR_MESSAGE);
-    }
-
-    public static void validate(Object obj, Data.Type type) throws IllegalArgumentException {
-        System.out.println("Validator:: validate");
-        if (obj == null) {
-            throw new IllegalArgumentException("Object is null");
+    public static void validate(String str, Data.Type type) throws ValidationException {
+        if (str == null || str.isBlank()) {
+            throw new ValidationException("Элемент не может быть пустым");
         }
-        if (obj instanceof String str) {
-            if (str.isEmpty()) {
-                throw new IllegalArgumentException("String is empty");
-            }
-            Pattern pattern = Pattern.compile(patterns.get(type));
-            Matcher matcher = pattern.matcher(str);
-            if (!matcher.matches())
-                throw new IllegalArgumentException(messages.get(type));
-        } else {
-            throw new IllegalArgumentException("Obj is not a string");
+
+        Pattern pattern = Pattern.compile(patterns.get(type));
+        Matcher matcher = pattern.matcher(str);
+        if (!matcher.matches()) {
+            throw new ValidationException(messages.get(type));
         }
     }
 
@@ -61,13 +50,16 @@ public final class Validator {
         if (source == null || type == null) return null;
 
         StringBuilder result = new StringBuilder();
+        int len = source.length();
         if (type == Data.Type.Name) {
             int pivot = source.indexOf(' ') + 1;
             result.append(source.substring(0, 1).toUpperCase())
                     .append(source.substring(1, pivot).toLowerCase())
                     .append(source.substring(pivot, pivot + 1).toUpperCase())
                     .append('.')
-                    .append(source.substring(source.length() - 1).toUpperCase())
+                    .append(source.charAt(len - 1) == '.' ?
+                            source.substring(len - 2, len - 1).toUpperCase() :
+                            source.substring(len - 1).toUpperCase())
                     .append('.');
         }
         else if (type == Data.Type.Faculty || type == Data.Type.Discipline) {
