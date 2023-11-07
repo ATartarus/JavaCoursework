@@ -12,7 +12,7 @@ public class Data {
         Group, Name, Faculty, Discipline, Year, Hours, Date, SerialNumber, Mark
     }
     private String text;
-    private Type type;
+    private final Type type;
     private boolean valid;
     private String message;
 

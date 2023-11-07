@@ -5,16 +5,14 @@ import components.managedTable.ManagedTableModel;
 import containers.Writable;
 import entity.Data;
 import entity.Student;
+import exceptions.XMLParseException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 import javax.swing.*;
-import javax.swing.filechooser.FileNameExtensionFilter;
-import javax.swing.filechooser.FileSystemView;
+import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileView;
-import javax.swing.plaf.basic.BasicFileChooserUI;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -25,37 +23,40 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.awt.*;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-@SuppressWarnings("ReassignedVariable")
 public class ProjectFileManager {
     public static final int OPEN_MODE = 0;
     public static final int SAVE_MODE = 1;
-    private String PATH;
+    private final String PATH;
     private String projectFileName;
     private final String dataFileName;
     private final HashMap<String, Writable> containers;
-    private final JRootPane windowRootPane;
     private DocumentBuilder docBuilder;
+    private final PropertyChangeSupport propertySup;
+    private boolean projectFileExists;
 
 
-    public ProjectFileManager(JRootPane rootPane, Writable[] containers) {
-        this(rootPane, containers, System.getProperty("user.dir"));
+    public ProjectFileManager(Writable[] containers) {
+        this(containers, System.getProperty("user.dir"));
     }
 
-    public ProjectFileManager(JRootPane rootPane, Writable[] containers, String PATH) {
+    public ProjectFileManager(Writable[] containers, String PATH) {
         this.containers = new HashMap<>();
         for (Writable source : containers) {
             this.containers.put(source.getClassName(), source);
         }
-        this.windowRootPane = rootPane;
         this.PATH = PATH + "\\data";
-        this.projectFileName = null;
         this.dataFileName = "data";
+        this.propertySup = new PropertyChangeSupport(this);
+        this.projectFileExists = false;
+        setDefaultProjectName();
 
         DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
         try {
@@ -66,180 +67,172 @@ public class ProjectFileManager {
     }
 
     private void setProjectFileName(String projectFileName) {
+        String oldVal = this.projectFileName;
         this.projectFileName = projectFileName;
+        propertySup.firePropertyChange("projectFileName", oldVal, projectFileName);
     }
 
-    /////////////////////////////////////////Save methods//////////////////////////////////////////
+    public String getProjectFileName() {
+        return projectFileName;
+    }
 
-    public void save() {
-        if (projectFileName == null) {
-            if (!chooseProjectFile(SAVE_MODE)) {
-                return;
+    public void addPropertyChangeListener(PropertyChangeListener l) {
+        propertySup.addPropertyChangeListener(l);
+    }
+
+    public boolean projectFileExists() {
+        return projectFileExists;
+    }
+
+    public void newProject() {
+        Writable header = containers.get("header");
+        if (header == null) throw new IllegalArgumentException("No item with 'header' key");
+
+        ManagedTable table = (ManagedTable) findComponent("body", "table");
+        ((ManagedTableModel) table.getModel()).clear();
+        Map<String, JComponent> componentMap = header.getComponentMap();
+        for (JComponent component : componentMap.values()) {
+            if (component instanceof JTextField textField) {
+                textField.setText(null);
             }
         }
 
-        if (saveFile(dataFileName)) {
-            System.out.println(dataFileName + " was saved successfully");
-        } else {
-            System.err.println(dataFileName + " was not saved");
-        }
-
-        if (saveFile(projectFileName)) {
-            System.out.println(projectFileName + " was saved successfully");
-        } else {
-            System.err.println(projectFileName + " was not saved");
-        }
+        setDefaultProjectName();
+        projectFileExists = false;
     }
 
-    private boolean saveFile(String fileName) {
-        Document doc;
 
-        File dataFile = new File(PATH + '\\' + fileName + ".xml");
+    /////////////////////////////////////////Save methods//////////////////////////////////////////
+
+
+    /**
+     * Saves project data to file with projectFileName and header data to dataFileName.
+     * <br/>If projectFileName is null, calls FileChooser to select project file.
+     * <br/>If either of files is not present, creates new.
+     * @throws IOException If file save fails.
+     */
+    public void save() throws IOException {
+        if (projectFileName == null) throw new IOException("file name is null");
+        Document dataDoc = getDocument(dataFileName);
+        if (dataDoc == null) {
+            dataDoc = docBuilder.newDocument();
+        }
+        saveHeader(dataDoc, false);
+
+        Document projectDoc = getDocument(projectFileName);
+        if (projectDoc == null) {
+            projectDoc = docBuilder.newDocument();
+        }
+        saveHeader(projectDoc,  true);
+        saveBody(projectDoc, null);
+
+        StringBuilder message = new StringBuilder();
         try {
-            doc = docBuilder.parse(dataFile);
-            deleteIndentation(doc);
-        } catch (Exception e) {
-            doc = docBuilder.newDocument();
-            doc.appendChild(doc.createElement(fileName.equals(projectFileName) ?
-                    "project" : "data"));
-            System.out.println(fileName + " file is not found");
+            writeFile(dataDoc, dataFileName);
+        } catch (IOException e) {
+            message.append(e.getMessage()).append(". ");
+        }
+        try {
+            writeFile(projectDoc, projectFileName);
+            projectFileExists = true;
+        } catch (IOException e) {
+            message.append(e.getMessage()).append(". ");
+        }
+        if (!message.isEmpty()) throw new IOException(message.toString());
+    }
+
+    /**
+     * Saves group data to file with dataFileName.
+     * <br/>If data file is not present, creates new.
+     * @param id ID of group to save.
+     * @throws IOException If file save fails.
+     */
+    public void saveGroup(String id) throws IOException {
+        Document dataDoc = getDocument(dataFileName);
+        if (dataDoc == null) {
+            dataDoc = docBuilder.newDocument();
+            dataDoc.appendChild(dataDoc.createElement("data"));
         }
 
-        if (!saveHeader(doc)) {
-            System.err.println("saveFile:: " + fileName + " header was not saved");
-        }
-        if (!fileName.equals(dataFileName) && !saveBody(doc)) {
-            System.err.println("saveFile:: " + fileName + " body was not saved");
-        }
-
-        try (FileOutputStream out =
-                     new FileOutputStream(PATH + '\\' + fileName + ".xml")) {
-            writeFile(doc, out);
-        } catch (Exception e) {
-            System.err.println("saveFile:: " + e.getMessage());
-            return false;
-        }
-
-        return true;
+        saveBody(dataDoc, id);
+        writeFile(dataDoc, dataFileName);
     }
 
     /**
      * Saves data of body component from containers field.
-     * <br/>Doc must have first child element.
-     * <br/>If first child element tag equals projectFileName, will not check data validity and will
-     * rewrite "group" tag.
-     * <br/>If tag equals dataFileName, will perform data validation and append new group tag or prompt user
-     * to rewrite existing.
-     * <br/>If doc does not contain appropriate nodes, this method will create them.
+     * <br/>If doc does not contain appropriate nodes, will create them.
      * @param doc Document in which data will be written.
-     * @return true if data was saved, false otherwise.
+     * @param groupID ID attribute add to the group node.
      */
-    private boolean saveBody(Document doc) {
+    private void saveBody(Document doc, String groupID) {
         Node root = doc.getFirstChild();
         if (root == null) {
-            System.err.println("saveBody:: root node is not found");
-            return false;
+            root = doc.createElement(groupID == null ? "project" : "data");
         }
-        boolean isProjectDoc = root.getNodeName().equals("project");
-
-        String groupID = null;
-        if (!isProjectDoc) {
-            if (!isGroupValid()) {
-                return false;
-            }
-            groupID = findGroupID();
-            if (groupID == null) {
-                return false;
-            }
+        Node bodyNode = getChildNodeByName(root, "body");
+        if (bodyNode == null) {
+            bodyNode = doc.createElement("body");
+            root.appendChild(bodyNode);
         }
 
-        Element bodyRoot;
-        NodeList nodes = ((Element) root).getElementsByTagName("body");
-        if (nodes.getLength() != 0) {
-            bodyRoot = (Element) nodes.item(0);
-        }
-        else {
-            bodyRoot = doc.createElement("body");
-            root.appendChild(bodyRoot);
-        }
-
-        Node groupNode = bodyRoot.getFirstChild();
+        Node groupNode = bodyNode.getFirstChild();
         while (groupNode != null) {
             Element tmp = (Element) groupNode;
             groupNode = groupNode.getNextSibling();
-            if (isProjectDoc) {
-                bodyRoot.removeChild(tmp);
-            }
-            else if (tmp.getAttribute("id").equals(groupID)) {
-                int answer = JOptionPane.showConfirmDialog(windowRootPane,
-                        "<html>Группа с данным номером уже существует<br>Перезаписать?</html>",
-                        "Warning",
-                        JOptionPane.YES_NO_OPTION,
-                        JOptionPane.QUESTION_MESSAGE
-                );
-                if (answer == JOptionPane.OK_OPTION) {
-                    bodyRoot.removeChild(tmp);
-                } else {
-                    return false;
-                }
+            if (groupID == null || tmp.getAttribute("id").equals(groupID)) {
+                bodyNode.removeChild(tmp);
             }
         }
 
-        ManagedTable table = (ManagedTable) containers.get("body").getComponentMap().get("table");
-        bodyRoot.appendChild(
+        JComponent tableObject = findComponent("body", "table");
+        ManagedTable table = (ManagedTable) tableObject;
+        bodyNode.appendChild(
                 createGroupElement(doc, groupID, (ManagedTableModel) table.getModel())
         );
-
-        return true;
     }
 
     /**
      * Saves data of header component from containers field.
-     * <br/>Doc must have first child element.
-     * <br/>If first child element tag equals projectFileName, will create properties tag for all components
-     * and place in them only selected items.
-     * <br/>If tag equals dataFileName, will create properties tag only for JComboBox components
-     * and place in them all existing items.
      * <br/>If doc does not contain appropriate nodes, this method will create them.
      * <br/>If doc already contains header data, it will be rewritten.
      * @param doc Document in which data will be written.
+     * @param project true if doc is project document, false otherwise.
      */
-    private boolean saveHeader(Document doc) {
+    private void saveHeader(Document doc, boolean project) {
         Node root = doc.getFirstChild();
         if (root == null) {
-            System.err.println("saveHeader:: root node is not found");
-            return false;
+            root = doc.createElement(project ? "project" : "data");
+            doc.appendChild(root);
         }
-        boolean isProjectDoc = root.getNodeName().equals("project");
 
         //Delete all nodes of header node
 
-        NodeList nodes = ((Element) root).getElementsByTagName("header");
-        Element headerRoot;
-        if (nodes.getLength() != 0) {
-            headerRoot = (Element) nodes.item(0);
-            Node property = headerRoot.getFirstChild();
+        Node headerNode = getChildNodeByName(root, "header");
+        if (headerNode == null) {
+            headerNode = doc.createElement("header");
+            root.appendChild(headerNode);
+        } else {
+            Node property = headerNode.getFirstChild();
             while (property != null) {
                 Node tmp = property;
                 property = property.getNextSibling();
-                headerRoot.removeChild(tmp);
+                headerNode.removeChild(tmp);
             }
-        }
-        else {
-            headerRoot = doc.createElement("header");
-            root.appendChild(headerRoot);
         }
 
         //Fetch data from components
 
-        HashMap<String, JComponent> componentMap = containers.get("header").getComponentMap();
+        Writable source = containers.get("header");
+        if (source == null) throw new IllegalArgumentException("Source header not found");
+
+        HashMap<String, JComponent> componentMap = source.getComponentMap();
         for (Map.Entry<String, JComponent> pair : componentMap.entrySet()) {
             Object[] data = null;
-            if (pair.getValue() instanceof JTextField tf && isProjectDoc) {
+            if (pair.getValue() instanceof JTextField tf && project) {
                 data = new Object[]{tf.getText().isEmpty() ? "null" : tf.getText()};
             }
             else if (pair.getValue() instanceof JComboBox<?> cb) {
-                if (isProjectDoc) {
+                if (project) {
                     data = new Object[]{cb.getSelectedItem()};
                 }
                 else {
@@ -257,80 +250,9 @@ public class ProjectFileManager {
             }
             Element property = createProperty(doc, pair.getKey(), data);
             if (property != null) {
-                headerRoot.appendChild(property);
+                headerNode.appendChild(property);
             }
         }
-
-        return true;
-    }
-
-    /**
-     * Checks if existing data of component with key "table" is valid.
-     * This component is being searched for in body component from containers field.
-     * <br/>All possible errors are printed into standard error stream.
-     * @return true if data is valid, false otherwise or if error occurred.
-     */
-    private boolean isGroupValid() {
-        Writable source = containers.get("body");
-        if (source == null) {
-            System.err.println("isGroupValid:: container 'body' not found");
-            return false;
-        }
-        JComponent tableObject = source.getComponentMap().get("table");
-        if (tableObject == null) {
-            System.err.println("saveGroup:: component with key 'table' not found");
-            return false;
-        }
-        if (tableObject instanceof ManagedTable table) {
-            if (!((ManagedTableModel) table.getModel()).isReadyToWrite()) {
-                JOptionPane.showMessageDialog(
-                        windowRootPane,
-                        "<html>Для сохранения группы второй и третий столбцы<br>" +
-                                "должны содержать валидные значения</html>",
-                        "Error",
-                        JOptionPane.ERROR_MESSAGE
-                );
-                System.out.println("table contains invalid elements. Save discarded");
-                return false;
-            }
-        }
-        else {
-            System.err.println("saveGroup:: component with key 'table' is not ManagedTable instance");
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
-     * Finds selected value of component with key "group".
-     * This component is being searched for in header component from containers field.
-     * <br/>All possible errors are printed into standard error stream.
-     * @return Valid group id or null if error occurred.
-     */
-    private String findGroupID() {
-        String groupName;
-        Writable source = containers.get("header");
-
-        if (source == null) {
-            System.err.println("findGroupName:: container 'header' not found");
-            return null;
-        }
-        JComponent group = source.getComponentMap().get("group");
-        if (group instanceof JComboBox<?> cb) {
-            Object selectedItem = cb.getSelectedItem();
-            if (selectedItem == null) {
-                System.err.println("findGroupName:: group is not selected");
-                return null;
-            }
-            groupName = selectedItem.toString();
-        }
-        else {
-            System.err.println("findGroupName:: component with key 'group' is not JComboBox instance");
-            return null;
-        }
-
-        return groupName;
     }
 
     /**
@@ -370,7 +292,7 @@ public class ProjectFileManager {
      * @param doc Document in which property element will be placed.
      * @param name Value of property "name" attribute.
      * @param source Array of objects that will be placed inside property tag as a String.
-     * @return Element with "property" tag.
+     * @return Element with "property" tag or null if source is null.
      */
     private static Element createProperty(Document doc, String name, Object[] source) {
         if (source == null) return null;
@@ -384,6 +306,343 @@ public class ProjectFileManager {
 
         newElement.appendChild(doc.createTextNode(items.toString()));
         return newElement;
+    }
+
+    private void writeFile(Document doc, String fileName) throws IOException {
+        try (FileOutputStream out = new FileOutputStream(PATH + '\\' + fileName + ".xml")) {
+            writeFile(doc, out);
+        } catch (Exception e) {
+            throw new IOException(e.getMessage());
+        }
+    }
+
+    private static void writeFile(Document doc, FileOutputStream out) throws TransformerException {
+        TransformerFactory transformerFactory = TransformerFactory.newInstance();
+        Transformer transformer = transformerFactory.newTransformer();
+        transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+        DOMSource source = new DOMSource(doc);
+        StreamResult result = new StreamResult(out);
+
+        transformer.transform(source, result);
+    }
+
+
+    /////////////////////////////////////////Load methods//////////////////////////////////////////
+
+
+    /**
+     * Loads data and project files.
+     * @throws IOException If file load fails.
+     * @throws XMLParseException If file document has unexpected structure.
+     */
+    public void load() throws IOException, XMLParseException {
+        loadFile(dataFileName);
+        loadFile(projectFileName);
+    }
+
+    /**
+     * Loads group from file with dataFileName.
+     * @param id ID of group to load.
+     * @throws XMLParseException If file document has unexpected structure.
+     * @throws IOException If file load fails.
+     */
+    public void loadGroup(String id) throws XMLParseException, IOException {
+        XMLParseException.setFileName(dataFileName);
+
+        Document dataDoc = getDocument(dataFileName);
+        if (dataDoc == null) throw new IOException(dataFileName + " file not found");
+
+        Node root = getRootNode(dataDoc);
+        Node bodyNode = getChildNodeByName(root, "body");
+        if (bodyNode == null) throw new XMLParseException("Body node not found");
+        Node groupNode = bodyNode.getFirstChild();
+        while (groupNode != null) {
+            Element groupElement = (Element) groupNode;
+            if (groupElement.hasAttribute("id") && groupElement.getAttribute("id").equals(id)) {
+                parseGroup(groupNode, containers.get("body"));
+                return;
+            }
+            groupNode = groupNode.getNextSibling();
+        }
+
+        XMLParseException.setFileName(null);
+    }
+
+    /**
+     * Loads file with given name and parses its data.
+     * @param fileName Name of file to load.
+     * @throws IOException If file load fails.
+     * @throws XMLParseException If file document has unexpected structure.
+     */
+    private void loadFile(String fileName) throws IOException, XMLParseException {
+        XMLParseException.setFileName(fileName);
+
+        Document doc = getDocument(fileName);
+        if (doc == null) throw new IOException(fileName + " file not found");
+
+        Node root = getRootNode(doc);
+        Node sourceNode = root.getFirstChild();
+        if (sourceNode == null) throw new XMLParseException("Source node not found");
+
+        while (sourceNode != null) {
+            Writable destination = containers.get(sourceNode.getNodeName());
+            if (destination == null) {
+                throw new IllegalArgumentException("Destination " + destination + " not found");
+            }
+
+            if (!root.getNodeName().equals("data") || !sourceNode.getNodeName().equals("body")) {
+                parseSource(sourceNode, destination);
+            }
+            sourceNode = sourceNode.getNextSibling();
+        }
+
+        XMLParseException.setFileName(null);
+    }
+
+    /**
+     * Parses source node to given destination.
+     * @param root Source node to parse.
+     * @param destination Writable object to which node is parsed.
+     * @throws XMLParseException If source node is empty.
+     */
+    public void parseSource(Node root, Writable destination) throws XMLParseException {
+        if (root == null) throw new IllegalArgumentException("Root is null");
+        if (destination == null) throw new IllegalArgumentException("Destination is null");
+
+        Node contentNode = root.getFirstChild();
+        if (contentNode == null) throw new XMLParseException("Node " + root + " is empty");
+
+        while (contentNode != null) {
+            String tag = contentNode.getNodeName();
+            if (tag.equals("property")) {
+                parseProperty(contentNode, destination);
+            }
+            else if (tag.equals("group")) {
+                parseGroup(contentNode, destination);
+            }
+
+            contentNode = contentNode.getNextSibling();
+        }
+    }
+
+    /**
+     * Parses group node to given destination.
+     * @param group Group node to parse.
+     * @param destination Writable object containing group component.
+     * @throws XMLParseException If group node is empty.
+     */
+    private void parseGroup(Node group, Writable destination) throws XMLParseException {
+        JComponent tableObject = findComponent(destination.getClassName(), "table");
+        if (tableObject instanceof ManagedTable table) {
+            ((ManagedTableModel) table.getModel()).clear();
+            Node studentNode = group.getFirstChild();
+            if (studentNode == null) throw new XMLParseException("Group node is empty");
+
+            Element studentElement = (Element) studentNode;
+            while (studentElement != null) {
+                Student student = new Student(
+                        Integer.parseInt(studentElement.getAttribute("id")),
+                        new Data(Data.Type.Name, studentElement.getTextContent()),
+                        new Data(Data.Type.SerialNumber,
+                                studentElement.getAttribute("serialNumber")),
+                        studentElement.getAttribute("result"),
+                        new Data(Data.Type.Mark, studentElement.getAttribute("mark"))
+                );
+                ((ManagedTableModel) table.getModel()).addRow(student);
+
+                studentElement = (Element) studentElement.getNextSibling();
+            }
+        } else {
+            throw new IllegalArgumentException("tableObject is not instance of ManagedTable");
+        }
+    }
+
+    /**
+     * Parses property node to component of given destination.
+     * @param property Property node to parse.
+     * @param destination Writable object containing property component.
+     */
+    private void parseProperty(Node property, Writable destination) {
+        JComponent component = findComponent(
+                destination.getClassName(),
+                ((Element) property).getAttribute("name")
+        );
+        String[] textContent = property.getTextContent().split(",");
+        if (component instanceof JTextField textField) {
+            textField.setText(textContent[0].equals("null") ?
+                    null : textContent[0]);
+        }
+        if (component instanceof JComboBox<?>) {
+            JComboBox<String> comboBox = (JComboBox<String>) component;
+            fillComboBox(comboBox, textContent);
+            comboBox.setSelectedItem(textContent[0]);
+        }
+    }
+
+    /**
+     * Adds strings to the model of given JComboBox.
+     * Duplicates are not added.
+     * @param comboBox JComboBox instance to fill.
+     * @param textContent String array which will be added to combobox.
+     */
+    private static void fillComboBox(JComboBox<String> comboBox, String[] textContent) {
+        ComboBoxModel<String> model = comboBox.getModel();
+        for (String s : textContent) {
+            if (s.isBlank()) continue;
+            int j = 0;
+            for (; j < model.getSize(); j++) {
+                if (s.equals(model.getElementAt(j))) {
+                    break;
+                }
+            }
+            if (j == model.getSize()) {
+                if (!s.equals("null")) {
+                    comboBox.addItem(s);
+                }
+            }
+        }
+    }
+
+
+    ///////////////////////////////////////////Utility/////////////////////////////////////////////
+
+
+    /**
+     * Creates JFileChooser instance and shows it in a given mode.
+     * If file was chosen, sets projectFileName to this value.
+     * @param mode Mode in which JFileChooser will be displayed.
+     *             <br/>OPEN_MODE – calls showOpenDialog.
+     *             <br/>SAVE_MODE – calls showSaveDialog.
+     * @return true if file was chosen, false otherwise.
+     */
+    public boolean showFileChooser(Component parent, int mode) {
+        File pathFile = new File(PATH);
+        JFileChooser fileChooser;
+        int chooseResult;
+
+        if (mode == OPEN_MODE) {
+            fileChooser = new JFileChooser();
+            setUpFileChooser(fileChooser, pathFile);
+            chooseResult = fileChooser.showOpenDialog(parent);
+        }
+        else if (mode == SAVE_MODE) {
+            fileChooser = new JFileChooser() {
+                @Override
+                public void approveSelection() {
+                    if (getSelectedFile().exists()) {
+                        int answer = JOptionPane.showConfirmDialog(
+                                this,
+                                "Rewrite file?",
+                                "File already exists",
+                                JOptionPane.OK_CANCEL_OPTION,
+                                JOptionPane.QUESTION_MESSAGE
+                        );
+                        if (answer == JOptionPane.CANCEL_OPTION) {
+                            return;
+                        }
+                    }
+                    super.approveSelection();
+                }
+            };
+            setUpFileChooser(fileChooser, pathFile);
+            fileChooser.setSelectedFile(new File(projectFileName));
+            chooseResult = fileChooser.showSaveDialog(parent);
+        }
+        else {
+            throw new IllegalArgumentException("Unsupported mode");
+        }
+
+
+        if (chooseResult == JFileChooser.APPROVE_OPTION) {
+            String selectedFileName = fileChooser.getSelectedFile().getName();
+            int pivot = selectedFileName.indexOf(".");
+            setProjectFileName(pivot == -1 ? selectedFileName : selectedFileName.substring(0, pivot));
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    /**
+     * Sets default settings for given JFileChooser and sets current directory according to passed parameter.
+     * @param fileChooser JFileChooser configure to.
+     * @param defaultDir Current directory.
+     */
+    private void setUpFileChooser(JFileChooser fileChooser, File defaultDir) {
+        fileChooser.setCurrentDirectory(defaultDir);
+        fileChooser.setAcceptAllFileFilterUsed(false);
+        fileChooser.setFileFilter(new FileFilter() {
+            @Override
+            public boolean accept(File f) {
+                if (f.isDirectory()) return false;
+                String fileName = f.getName();
+                return fileName.substring(fileName.indexOf(".")).equals(".xml") &&
+                        !fileName.substring(0, fileName.indexOf(".")).equals(dataFileName);
+            }
+
+            @Override
+            public String getDescription() {
+                return "XML files (.xml)";
+            }
+        });
+        fileChooser.setFileView(new FileView() {
+            @Override
+            public Boolean isTraversable(File f) {
+                return defaultDir.equals(f);
+            }
+        });
+    }
+
+    /**
+     * Creates document from file by given name and deletes its indentation.
+     * @param fileName File name to load.
+     * @return Created document or null, if error occurred or fileName is null.
+     */
+    private Document getDocument(String fileName) {
+        if (fileName == null) return null;
+        Document doc;
+        File dataFile = new File(PATH + '\\' + fileName + ".xml");
+        try {
+            doc = docBuilder.parse(dataFile);
+            deleteIndentation(doc);
+        } catch (Exception e) {
+            return null;
+        }
+        return doc;
+    }
+
+    /**
+     * Retrieves root node from given document with additional verification.
+     * @param doc Document.
+     * @return Root node.
+     * @throws XMLParseException If root node not present or its name different from "data" or "project".
+     */
+    private Node getRootNode(Document doc) throws XMLParseException {
+        Node root = doc.getFirstChild();
+        if (root == null) throw new XMLParseException("Root node not found");
+        String rootNodeName = root.getNodeName();
+        if (!rootNodeName.equals("data") && !rootNodeName.equals("project")) {
+            throw new XMLParseException("Unexpected node: " + rootNodeName);
+        }
+        return root;
+    }
+
+    /**
+     * Searches for child node with specified name in given node.
+     * @param root Parent node.
+     * @param childName Name of a child node.
+     * @return Child node if found, null otherwise.
+     */
+    private static Node getChildNodeByName(Node root, String childName) {
+        Node child = root.getFirstChild();
+        while (child != null) {
+            if (child.getNodeName().equals(childName)) {
+                return child;
+            }
+            child = child.getNextSibling();
+        }
+        return null;
     }
 
     /**
@@ -415,239 +674,68 @@ public class ProjectFileManager {
         }
     }
 
-    private static void writeFile(Document doc, FileOutputStream out) throws TransformerException {
-        TransformerFactory transformerFactory = TransformerFactory.newInstance();
-        Transformer transformer = transformerFactory.newTransformer();
-        transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-        DOMSource source = new DOMSource(doc);
-        StreamResult result = new StreamResult(out);
-
-        transformer.transform(source, result);
+    /**
+     * Searches for component in container.
+     * @param source Container key in containers field.
+     * @param component Component key in containers component map.
+     * @return Desired component.
+     */
+    private JComponent findComponent(String source, String component) {
+        Writable src = containers.get(source);
+        if (src == null) throw new IllegalArgumentException("Source " + source + " not found");
+        JComponent cmp = src.getComponentMap().get(component);
+        if (cmp == null) throw new IllegalArgumentException("Component " + component + " not found");
+        return cmp;
     }
 
-    public boolean saveGroup() {
-        Document doc;
-
-        File dataFile = new File(PATH + '\\' + dataFileName + ".xml");
-        try {
-            doc = docBuilder.parse(dataFile);
-            deleteIndentation(doc);
-        } catch (Exception e) {
-            doc = docBuilder.newDocument();
-            doc.appendChild(doc.createElement("data"));
-            System.out.println("saveGroup:: " + dataFileName + " file is not found");
-        }
-
-        if (!saveBody(doc)) {
-            return false;
-        }
-        try (FileOutputStream out =
-                     new FileOutputStream(PATH + '\\' + dataFileName + ".xml")) {
-            writeFile(doc, out);
-        } catch (Exception e) {
-            System.err.println("saveFile:: " + e.getMessage());
-            return false;
-        }
-        return true;
-    }
-
-    public boolean loadGroup() {
-        Document doc;
-
-        File dataFile = new File(PATH + '\\' + dataFileName + ".xml");
-        try {
-            doc = docBuilder.parse(dataFile);
-            deleteIndentation(doc);
-        } catch (Exception e) {
-            System.err.println("loadGroup::  " + dataFileName + " file is not found");
-            return false;
-        }
-
-        return true;
-    }
-
-
-    /////////////////////////////////////////Load methods//////////////////////////////////////////
-
-    public boolean chooseProjectFile(int mode) {
-        File pathFile = new File(PATH);
-        JFileChooser fileChooser = null;
-        int chooseResult;
-
-        if (mode == OPEN_MODE) {
-            fileChooser = new JFileChooser();
-            setUpFileChooser(fileChooser, pathFile);
-            chooseResult = fileChooser.showOpenDialog(windowRootPane);
-        }
-        else if (mode == SAVE_MODE) {
-            fileChooser = new JFileChooser() {
-                @Override
-                public void approveSelection() {
-                    if (getSelectedFile().exists()) {
-                        int answer = JOptionPane.showConfirmDialog(
-                                this,
-                                "Rewrite file?",
-                                "File already exists",
-                                JOptionPane.OK_CANCEL_OPTION,
-                                JOptionPane.QUESTION_MESSAGE
-                        );
-                        if (answer == JOptionPane.CANCEL_OPTION) {
-                            return;
-                        }
-                    }
-                    super.approveSelection();
-                }
-            };
-            setUpFileChooser(fileChooser, pathFile);
-            chooseResult = fileChooser.showSaveDialog(windowRootPane);
-        }
-        else {
-            System.err.println("chooseProjectFile:: unsupported mode");
-            return false;
-        }
-
-
-        if (chooseResult == JFileChooser.APPROVE_OPTION) {
-            String selectedFileName = fileChooser.getSelectedFile().getName();
-            setProjectFileName(selectedFileName.substring(0, selectedFileName.indexOf(".")));
-            return true;
-        }
-        else {
-            return false;
-        }
-    }
-
-    private static void setUpFileChooser(JFileChooser fileChooser, File defaultDir) {
-        fileChooser.setCurrentDirectory(defaultDir);
-        fileChooser.setAcceptAllFileFilterUsed(false);
-        fileChooser.setFileFilter(new FileNameExtensionFilter("XML files (.xml)", "xml"));
-        fileChooser.setFileView(new FileView() {
-            @Override
-            public Boolean isTraversable(File f) {
-                return defaultDir.equals(f);
-            }
-        });
-    }
-
-    public void load() {
-        if (loadFile(dataFileName)) {
-            System.out.println(dataFileName + " was loaded successfully");
-        } else {
-            System.err.println(dataFileName + " was not loaded");
-        }
-
-        if (loadFile(projectFileName)) {
-            System.out.println(projectFileName + " was loaded successfully");
-        } else {
-            System.err.println(projectFileName + " was not loaded");
-        }
-    }
-
-    private boolean loadFile(String fileName) {
-        Document doc;
-
-        File dataFile = new File(PATH + '\\' + fileName + ".xml");
-        try {
-            doc = docBuilder.parse(dataFile);
-            deleteIndentation(doc);
-        } catch (Exception e) {
-            System.err.println(fileName + " file is not found");
-            return false;
-        }
+    /**
+     * Checks if group with specified id exists in data file.
+     * @param id id attribute of a group.
+     * @return true if group exists, false otherwise.
+     * @throws XMLParseException If document has unexpected structure.
+     * @throws IOException If file load fails.
+     */
+    public boolean groupExists(String id) throws XMLParseException, IOException {
+        Document doc = getDocument(dataFileName);
+        if (doc == null) throw new IOException(dataFileName + " file not found");
 
         Node root = doc.getFirstChild();
-        if (root == null) {
-            System.err.println("loadFile:: root node is not found");
-            return false;
-        }
+        if (root == null) throw new XMLParseException("Root node not found");
 
-        Node sourceNode = root.getFirstChild();
-        if (sourceNode == null) {
-            System.err.println("loadFile:: source node is not found");
-            return false;
-        }
-
-        while (sourceNode != null) {
-            Writable destination = containers.get(sourceNode.getNodeName());
-            if (destination == null) {
-                System.err.println("loadFile:: source for key "
-                        + sourceNode.getNodeName() + " is not found");
-                return false;
+        Node bodyNode = getChildNodeByName(root, "body");
+        if (bodyNode == null) throw new XMLParseException("Body node not found");
+        Node groupNode = bodyNode.getFirstChild();
+        if (groupNode == null) throw new XMLParseException("Body node is empty");
+        while (groupNode != null) {
+            Element groupElement = (Element) groupNode;
+            if (groupElement.hasAttribute("id") &&
+                    groupElement.getAttribute("id").equals(id)) {
+                return true;
             }
-
-            if (!root.getNodeName().equals("data") || !sourceNode.getNodeName().equals("body")) {
-                parseNode(sourceNode, destination);
-            }
-            sourceNode = sourceNode.getNextSibling();
+            groupNode = groupNode.getNextSibling();
         }
 
-        return true;
+        return false;
     }
 
-    public void parseNode(Node root, Writable destination) {
-        Node contentNode = root.getFirstChild();
-        if (contentNode == null) {
-            System.err.println("parseNode:: node " + root + " is empty");
-            return;
-        }
-        Element contentElement = (Element) contentNode;
+    private void setDefaultProjectName() {
+        File[] files = new File(PATH).listFiles(
+                (dir, name) -> name.endsWith(".xml") && name.startsWith("project")
+        );
 
-        HashMap<String, JComponent> components = destination.getComponentMap();
-        while (contentElement != null) {
-            String tag = contentElement.getTagName();
-            if (tag.equals("property")) {
-                JComponent component = components.get(contentElement.getAttribute("name"));
-                String[] textContent = contentElement.getTextContent().split(",");
-                if (component instanceof JTextField textField) {
-                    textField.setText(textContent[0].equals("null") ?
-                            null : textContent[0]);
-                }
-                if (component instanceof JComboBox<?>) {
-                    JComboBox<String> comboBox = (JComboBox<String>) component;
-                    fillComboBox(comboBox, textContent);
-                    comboBox.setSelectedItem(textContent[0]);
-                }
-            }
-            else if (tag.equals("group")) {
-                JComponent component = components.get("table");
-                if (component instanceof ManagedTable table) {
-                    ((ManagedTableModel) table.getModel()).clear();
-                    Element studentElement = (Element) contentElement.getFirstChild();
-                    while (studentElement != null) {
-                        Student student = new Student(
-                                Integer.parseInt(studentElement.getAttribute("id")),
-                                new Data(Data.Type.Name, studentElement.getTextContent()),
-                                new Data(Data.Type.SerialNumber,
-                                        studentElement.getAttribute("serialNumber")),
-                                studentElement.getAttribute("result"),
-                                new Data(Data.Type.Mark, studentElement.getAttribute("mark"))
-                        );
-                        ((ManagedTableModel) table.getModel()).addRow(student);
-
-                        studentElement = (Element) studentElement.getNextSibling();
-                    }
-                }
-            }
-
-            contentElement = (Element) contentElement.getNextSibling();
-        }
-    }
-
-    private static void fillComboBox(JComboBox<String> comboBox, String[] textContent) {
-        ComboBoxModel<String> model = comboBox.getModel();
-        for (String s : textContent) {
-            if (s.isBlank()) continue;
+        if (files == null) throw new IllegalArgumentException("listFiles returned null");
+        int i = 0;
+        for (; i < files.length; i++) {
             int j = 0;
-            for (; j < model.getSize(); j++) {
-                if (s.equals(model.getElementAt(j))) {
+            for (; j < files.length; j++) {
+                String fileName = files[i].getName();
+                if (fileName.substring(7, fileName.indexOf(".")).equals(Integer.toString(i + 1))) {
                     break;
                 }
             }
-            if (j == model.getSize()) {
-                if (!s.equals("null")) {
-                    comboBox.addItem(s);
-                }
-            }
+            if (j >= files.length) break;
         }
+
+        setProjectFileName("project" + (i + 1));
     }
 }

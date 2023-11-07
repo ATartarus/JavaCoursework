@@ -5,6 +5,7 @@ import components.managedTextField.ManagedTextField;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 
@@ -27,6 +28,10 @@ public class ManagedTextFieldEditor extends DefaultCellEditor {
                 stopCellEditing();
             }
         });
+        ActionListener[] listeners = component.getActionListeners();
+        for (ActionListener listener : listeners) {
+            component.removeActionListener(listener);
+        }
         editorComponent = component;
     }
 
@@ -40,18 +45,13 @@ public class ManagedTextFieldEditor extends DefaultCellEditor {
 
     @Override
     public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-        ManagedTextField textField = (ManagedTextField) super.getTableCellEditorComponent(table, value, isSelected, row, column);
+        ManagedTextField textField = (ManagedTextField)
+                super.getTableCellEditorComponent(table, value, isSelected, row, column);
         if (value instanceof Data data) {
             textField.setText(data.getText());
         } else {
             textField.setText(null);
         }
         return textField;
-    }
-
-    @Override
-    public boolean stopCellEditing() {
-        component.checkData(false);
-        return super.stopCellEditing();
     }
 }

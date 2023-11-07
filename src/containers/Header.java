@@ -192,9 +192,7 @@ public class Header extends ComponentManager implements Writable {
                     parent, "Добавьте новую группу", true, Data.Type.Group
             );
 
-            dial.addDialogListener(item -> {
-                addItem(item, groupComboBox);
-            });
+            dial.addDialogListener(item -> addItem(item, groupComboBox));
             dial.setVisible(true);
         });
 
@@ -204,9 +202,7 @@ public class Header extends ComponentManager implements Writable {
                     parent, "Добавьте новый факультет", true, Data.Type.Faculty
             );
 
-            dial.addDialogListener(item -> {
-                addItem(item, facultyComboBox);
-            });
+            dial.addDialogListener(item -> addItem(item, facultyComboBox));
             dial.setVisible(true);
         });
 
@@ -215,9 +211,7 @@ public class Header extends ComponentManager implements Writable {
                     parent, "Добавьте новую дисциплину", true, Data.Type.Discipline
             );
 
-            dial.addDialogListener(item -> {
-                addItem(item, disciplineComboBox);
-            });
+            dial.addDialogListener(item -> addItem(item, disciplineComboBox));
             dial.setVisible(true);
         });
 
@@ -226,9 +220,7 @@ public class Header extends ComponentManager implements Writable {
                     parent, "Добавьте нового преподавателя", true, Data.Type.Name
             );
 
-            dial.addDialogListener(item -> {
-                addItem(item, academicComboBox);
-            });
+            dial.addDialogListener(item -> addItem(item, academicComboBox));
             dial.setVisible(true);
         });
     }
@@ -309,5 +301,14 @@ public class Header extends ComponentManager implements Writable {
         }
         comboBox.addItem(str);
         comboBox.setSelectedItem(str);
+    }
+
+    public String getGroupID() {
+        String groupID;
+        Object selectedItem = groupComboBox.getSelectedItem();
+        if (selectedItem == null) groupID = null;
+        else groupID = selectedItem.toString();
+
+        return groupID;
     }
 }

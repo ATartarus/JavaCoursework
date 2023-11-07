@@ -3,10 +3,7 @@ package components.managedTable;
 import entity.Data;
 
 import javax.swing.*;
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.EventObject;
 
@@ -19,6 +16,7 @@ public class ManagedTable extends JTable {
             mainWindow.setMinimumSize(new Dimension(1000, 800));
             mainWindow.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
             ManagedTable t = new ManagedTable();
+            t.setModel(new DefaultTableModel(new String[] {"1", "2", "3", "4", "5"}, 10));
             JScrollPane scroll = new JScrollPane(t);
             scroll.getViewport().setOpaque(false);
             scroll.setBackground(new Color(0, 0, 0, 0));

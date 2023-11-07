@@ -2,13 +2,10 @@ package containers;
 
 import components.managedTable.ManagedTable;
 import components.managedTable.ManagedTableModel;
-import components.managedTable.ManagedTextFieldEditor;
-import components.managedTextField.ManagedTextField;
 import entity.Data;
 
 import javax.swing.*;
 import javax.swing.event.TableModelListener;
-import javax.swing.table.TableCellEditor;
 import java.awt.*;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
@@ -53,8 +50,6 @@ public class Body extends ComponentManager implements Writable {
 
     @Override
     protected void configComponents() {
-/*        scroll.getViewport().setOpaque(false);
-        scroll.setBackground(new Color(0, 0, 0, 0));*/
         scroll.setBorder(BorderFactory.createEmptyBorder());
 
         ImageIcon icon = new ImageIcon("button.png");
@@ -119,6 +114,11 @@ public class Body extends ComponentManager implements Writable {
                 }
             }
         });
+    }
+
+
+    public boolean isGroupReadyToWrite(){
+        return ((ManagedTableModel) table.getModel()).isReadyToWrite();
     }
 
     public void addTableModelListener(TableModelListener l) {

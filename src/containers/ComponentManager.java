@@ -1,7 +1,6 @@
 package containers;
 
 import javax.swing.*;
-import java.awt.Component;
 
 public abstract class ComponentManager {
     protected final JFrame parent;

@@ -8,8 +8,6 @@ import javax.swing.border.Border;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.awt.*;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
 
 public class ManagedTextField extends JTextField {
     private final Timer timer;
@@ -53,13 +51,11 @@ public class ManagedTextField extends JTextField {
         setBorder(data.isErrorDisplayNeeded() ? invalidBorder : validBorder);
     }
 
-    public void setInvalidBorder(Border border) {
-        invalidBorder = border;
-        setBorder(data.isErrorDisplayNeeded() ? invalidBorder : validBorder);
-    }
-
-
     public void addEventListeners() {
+        addActionListener(e -> {
+            checkData(true);
+            formatData();
+        });
         getDocument().addDocumentListener(new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent e) {
@@ -75,14 +71,7 @@ public class ManagedTextField extends JTextField {
             public void changedUpdate(DocumentEvent e) { }
         });
 
-        addActionListener(e -> {
-            checkData(true);
-            formatData();
-        });
-
-        timer.addActionListener(ev -> {
-            checkData(false);
-        });
+        timer.addActionListener(ev -> checkData(false));
     }
 
     /**
