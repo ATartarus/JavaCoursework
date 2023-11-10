@@ -120,4 +120,12 @@ public class ManagedTableModel extends AbstractTableModel {
         }
         return true;
     }
+
+    public int countNotAppeared() {
+        int count = 0;
+        for (Student student : tableData) {
+            if (student.getResult().equals(Student.results[2])) count++;
+        }
+        return count;
+    }
 }

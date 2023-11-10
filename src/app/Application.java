@@ -2,6 +2,7 @@ package app;
 
 import containers.*;
 import exceptions.XMLParseException;
+import filemanagment.*;
 
 import javax.swing.*;
 import javax.swing.plaf.FontUIResource;
@@ -16,13 +17,14 @@ public class Application {
     private final Header header;
     private final Body body;
     private final Footer footer;
+    private final ProjectData projectData;
     private final ProjectFileManager fileManager;
 
     public Application() {
         configUIDefaults();
 
         mainWindow = new JFrame(appName);
-        mainWindow.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        mainWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         mainWindow.setJMenuBar(createMenu());
         mainWindow.setContentPane(new JPanel(new GridBagLayout()));
 
@@ -31,12 +33,13 @@ public class Application {
         footer = new Footer(mainWindow);
         body.addTableModelListener(footer::updateData);
 
-        fileManager = new ProjectFileManager(new Writable[]{header, body, footer});
-        fileManager.addPropertyChangeListener(
+        projectData = new ProjectData(new Writable[]{header, body});
+        projectData.addPropertyChangeListener(
                 evt -> mainWindow.setTitle(appName + " – " + evt.getNewValue())
         );
+        fileManager = new filemanagment.ProjectFileManager(projectData);
 
-        mainWindow.setTitle(appName + " – " + fileManager.getProjectFileName());
+        mainWindow.setTitle(appName + " – " + projectData.getProjectFileName());
         mainWindow.pack();
         mainWindow.setLocationRelativeTo(null);
         mainWindow.setVisible(true);
@@ -92,8 +95,9 @@ public class Application {
         item.addActionListener(e -> onLoadGroupClick());
         group.add(item);
 
-
-        export.add(new JMenuItem("As docx"));
+        item = new JMenuItem("As docx");
+        item.addActionListener(e -> onExportClick());
+        export.add(item);
 
         about.add(new JMenuItem("Author"));
         about.add(new JMenuItem("Program"));
@@ -102,7 +106,6 @@ public class Application {
     }
 
     private void onNewProjectClick() {
-        if (!fileManager.projectFileExists()) return;
         int answer = JOptionPane.showConfirmDialog(
                 mainWindow,
                 "Сохранить текущий проект?",
@@ -110,7 +113,7 @@ public class Application {
                 JOptionPane.YES_NO_OPTION
         );
         if (answer == JOptionPane.OK_OPTION) {
-            if (fileManager.projectFileExists()) {
+            if (fileManager.isProjectFileExists()) {
                 onSaveProjectClick();
             } else {
                 onSaveAsProjectClick();
@@ -123,7 +126,7 @@ public class Application {
     private void onOpenProjectClick() {
         if (fileManager.showFileChooser(mainWindow, ProjectFileManager.OPEN_MODE)) {
             try {
-                fileManager.load();
+                fileManager.loadProject();
             } catch (IOException ioException) {
                 showErrorMessage(ioException.getMessage(), "Load file error");
             } catch (XMLParseException parseException) {
@@ -133,7 +136,7 @@ public class Application {
     }
 
     private void onSaveProjectClick() {
-        if (fileManager.projectFileExists()) {
+        if (fileManager.isProjectFileExists()) {
             saveProject();
         } else {
             onSaveAsProjectClick();
@@ -148,7 +151,7 @@ public class Application {
 
     private void saveProject() {
         try {
-            fileManager.save();
+            fileManager.saveProject();
         } catch (IOException exception) {
             showErrorMessage(exception.getMessage(), "Save file error");
         }
@@ -208,6 +211,16 @@ public class Application {
         } catch (IOException ioException) {
             showErrorMessage(ioException.getMessage(), "Save group error");
         }
+    }
+
+    private void onExportClick() {
+        new SwingWorker<Void, Void>() {
+            @Override
+            protected Void doInBackground() {
+                ProjectExporter.export(projectData, projectData.getFolderPath() + "\\template.docx");
+                return null;
+            }
+        }.execute();
     }
 
     private void showErrorMessage(String message, String title) {

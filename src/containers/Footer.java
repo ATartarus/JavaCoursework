@@ -8,22 +8,17 @@ import javax.swing.event.TableModelEvent;
 import java.awt.*;
 import java.util.HashMap;
 
-public class Footer extends ComponentManager implements Writable {
+public class Footer extends ComponentManager {
     private JLabel appearedStudents;
     private final String appearedStudentsPlaceholder =
-            "<html><em>Количество обучающихся, присутствовавших на аттестации: <b>{val}</b></em></html>";
+            "<html><em>Количество обучающихся, присутствовавших на аттестации: <b>${val}</b></em></html>";
     private JLabel notAppearedStudents;
     private final String notAppearedStudentsPlaceholder =
             "<html><em>Количество обучающихся, не явившихся на аттестацию<br>" +
-            "(в том числе, не допущенных к аттестации): <b>{val}</b></em></html>";
+            "(в том числе, не допущенных к аттестации): <b>${val}</b></em></html>";
 
     public Footer(JFrame parent) {
         super(parent);
-    }
-
-    @Override
-    public HashMap<String, JComponent> getComponentMap() {
-        return null;
     }
 
     @Override
@@ -41,8 +36,8 @@ public class Footer extends ComponentManager implements Writable {
 
     @Override
     protected void initComponents() {
-        appearedStudents = new JLabel(appearedStudentsPlaceholder.replace("{val}", "0"));
-        notAppearedStudents = new JLabel(notAppearedStudentsPlaceholder.replace("{val}", "0"));
+        appearedStudents = new JLabel(appearedStudentsPlaceholder.replace("${val}", "0"));
+        notAppearedStudents = new JLabel(notAppearedStudentsPlaceholder.replace("${val}", "0"));
     }
 
     @Override
@@ -71,20 +66,13 @@ public class Footer extends ComponentManager implements Writable {
             int j = e.getColumn();
             if (j != 3 && j != TableModelEvent.ALL_COLUMNS) return;
 
-            int count = model.getRowCount();
-            int notAppeared = 0;
-            for (int i = 0; i < count; i++) {
-                Student student = model.getEntity(i);
-                if (student.getResult().equals(Student.results[2]))
-                   notAppeared++;
-            }
-
+            int notAppeared = model.countNotAppeared();
             appearedStudents.setText(appearedStudentsPlaceholder.replace(
-                    "{val}", Integer.toString(count - notAppeared)
+                    "${val}", Integer.toString(model.getRowCount() - notAppeared)
             ));
 
             notAppearedStudents.setText(notAppearedStudentsPlaceholder.replace(
-                    "{val}", Integer.toString(notAppeared)
+                    "${val}", Integer.toString(notAppeared)
             ));
         }
     }
