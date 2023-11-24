@@ -1,7 +1,5 @@
 package filemanagment;
 
-import containers.Writable;
-
 import javax.swing.*;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;

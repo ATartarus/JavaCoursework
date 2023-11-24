@@ -13,7 +13,7 @@ public class ManagedTextField extends JTextField {
     private final Timer timer;
     private final Data data;
     private Border validBorder;
-    private Border invalidBorder;
+    private final Border invalidBorder;
 
     public ManagedTextField(Data.Type type) {
         this(type, 0);
@@ -34,11 +34,6 @@ public class ManagedTextField extends JTextField {
         super.setText(t);
         data.setText(t);
         setBorder(data.isErrorDisplayNeeded() ? invalidBorder : validBorder);
-    }
-
-    @Override
-    public String getText() {
-        return super.getText();
     }
 
     public Data getData() {
