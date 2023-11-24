@@ -98,7 +98,7 @@ public class Header extends ComponentManager implements Writable {
         dateTextField.putClientProperty("isValid", true);
         dateTextField.setHorizontalAlignment(SwingConstants.CENTER);
 
-        ImageIcon icon = new ImageIcon("button.png");
+        ImageIcon icon = new ImageIcon(System.getProperty("user.dir") + "/src/images/plus_button_icon.png");
         icon = new ImageIcon(icon.getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH));
         groupButton.setIcon(icon);
         facultyButton.setIcon(icon);

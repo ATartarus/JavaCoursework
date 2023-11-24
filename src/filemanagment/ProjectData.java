@@ -24,7 +24,7 @@ public class ProjectData {
         for (Writable source : containers) {
             this.containers.put(source.getClassName(), source);
         }
-        this.folderPath = folderPath + "\\data";
+        this.folderPath = folderPath + "/data";
         this.dataFileName = "data";
         this.propertySup = new PropertyChangeSupport(this);
 
@@ -62,17 +62,21 @@ public class ProjectData {
                 (dir, name) -> name.endsWith(".xml") && name.startsWith("project")
         );
 
-        if (files == null) throw new IllegalArgumentException("listFiles returned null");
         int i = 0;
-        for (; i < files.length; i++) {
-            int j = 0;
-            for (; j < files.length; j++) {
-                String fileName = files[j].getName();
-                if (fileName.substring(7, fileName.indexOf(".")).equals(Integer.toString(i + 1))) {
-                    break;
+        if (files == null) {
+            if (new File(folderPath).isDirectory()) throw new IllegalArgumentException("listFiles returned null");
+        }
+        else {
+            for (; i < files.length; i++) {
+                int j = 0;
+                for (; j < files.length; j++) {
+                    String fileName = files[j].getName();
+                    if (fileName.substring(7, fileName.indexOf(".")).equals(Integer.toString(i + 1))) {
+                        break;
+                    }
                 }
+                if (j >= files.length) break;
             }
-            if (j >= files.length) break;
         }
 
         setProjectFileName("project" + (i + 1));

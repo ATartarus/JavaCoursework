@@ -68,7 +68,7 @@ public class ManagedTableModel extends AbstractTableModel {
         if (rowIndex >= 0 && rowIndex < tableData.size()) {
             Student record = tableData.get(rowIndex);
             switch (columnIndex) {
-                case 0 -> value = record.getID();
+                case 0 -> value = rowIndex + 1;
                 case 1 -> value = record.getName();
                 case 2 -> value = record.getSerialNumber();
                 case 3 -> value = record.getResult();
@@ -82,14 +82,14 @@ public class ManagedTableModel extends AbstractTableModel {
     public void addRow(Student row) {
         Student record;
         if (row == null) {
-            record = new Student(getRowCount() + 1,
+            record = new Student(
                     new Data(Data.Type.Name),
                     new Data(Data.Type.SerialNumber),
                     null,
                     new Data(Data.Type.Mark)
             );
         } else {
-            record = new Student(getRowCount() + 1,
+            record = new Student(
                     new Data(row.getName()),
                     new Data(row.getSerialNumber()),
                     row.getResult(),
@@ -98,6 +98,11 @@ public class ManagedTableModel extends AbstractTableModel {
         }
         tableData.add(record);
         fireTableRowsInserted(getRowCount() - 1, getRowCount() - 1);
+    }
+
+    public void removeRow(int ind) {
+        tableData.remove(ind);
+        fireTableDataChanged();
     }
 
     public Student getEntity(int row) {

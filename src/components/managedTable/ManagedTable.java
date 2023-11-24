@@ -3,9 +3,11 @@ package components.managedTable;
 import entity.Data;
 
 import javax.swing.*;
-import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.util.EventObject;
+
 
 public class ManagedTable extends JTable {
 /*    public static void main(String[] args) {
@@ -35,6 +37,27 @@ public class ManagedTable extends JTable {
         ManagedTableModel model = new ManagedTableModel();
         setModel(model);
 
+        addFocusListener(new FocusListener() {
+            @Override
+            public void focusGained(FocusEvent e) {
+            }
+
+            @Override
+            public void focusLost(FocusEvent e) {
+                if (isEditing()) {
+                    DefaultCellEditor editor = (DefaultCellEditor) getCellEditor(getEditingRow(), getEditingColumn());
+                    Component component = editor.getComponent();
+                    Point mousePosition = MouseInfo.getPointerInfo().getLocation();
+                    SwingUtilities.convertPointFromScreen(mousePosition, component);
+
+                    if (!component.contains(mousePosition)) {
+                        editor.stopCellEditing();
+                    }
+                }
+            }
+        });
+
+
         setSizeConstraints();
         config();
     }
@@ -48,10 +71,8 @@ public class ManagedTable extends JTable {
                     }
                 }
         );
-        DefaultTableCellRenderer cr = new DefaultTableCellRenderer();
-        cr.setHorizontalAlignment(JLabel.CENTER);
-        getColumnModel().getColumn(0).setCellRenderer(cr);
 
+        getColumnModel().getColumn(0).setCellRenderer(new IDCellRenderer());
         getColumnModel().getColumn(1).setCellEditor(new ManagedTextFieldEditor(Data.Type.Name));
         getColumnModel().getColumn(2).setCellEditor(new ManagedTextFieldEditor(Data.Type.SerialNumber));
         getColumnModel().getColumn(4).setCellEditor(new ManagedTextFieldEditor(Data.Type.Mark));

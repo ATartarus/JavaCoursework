@@ -113,11 +113,7 @@ public class Application {
                 JOptionPane.YES_NO_OPTION
         );
         if (answer == JOptionPane.OK_OPTION) {
-            if (fileManager.isProjectFileExists()) {
-                onSaveProjectClick();
-            } else {
-                onSaveAsProjectClick();
-            }
+            onSaveProjectClick();
         }
 
         fileManager.newProject();
@@ -125,6 +121,16 @@ public class Application {
 
     private void onOpenProjectClick() {
         if (fileManager.showFileChooser(mainWindow, ProjectFileManager.OPEN_MODE)) {
+            int answer = JOptionPane.showConfirmDialog(
+                    mainWindow,
+                    "Сохранить текущий проект?",
+                    "Warning",
+                    JOptionPane.YES_NO_OPTION
+            );
+            if (answer == JOptionPane.OK_OPTION) {
+                onSaveProjectClick();
+            }
+
             try {
                 fileManager.loadProject();
             } catch (IOException ioException) {
@@ -214,10 +220,12 @@ public class Application {
     }
 
     private void onExportClick() {
+        String fileName = ProjectExporter.showFileChooser(mainWindow, projectData.getProjectFileName());
+        if (fileName == null) return;
         new SwingWorker<Void, Void>() {
             @Override
             protected Void doInBackground() {
-                ProjectExporter.export(projectData, projectData.getFolderPath() + "\\template.docx");
+                ProjectExporter.export(projectData, fileName);
                 return null;
             }
         }.execute();

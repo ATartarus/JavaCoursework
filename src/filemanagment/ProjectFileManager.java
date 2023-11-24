@@ -245,7 +245,6 @@ public class ProjectFileManager {
         for (int i = 0; i < source.getRowCount(); i++) {
             Student student = source.getEntity(i);
             Element studentElement = doc.createElement("student");
-            studentElement.setAttribute("id", Integer.toString(student.getID()));
             studentElement.setAttribute("serialNumber", student.getSerialNumber().getText());
             studentElement.appendChild(doc.createTextNode(student.getName().getText()));
 
@@ -282,7 +281,7 @@ public class ProjectFileManager {
 
     private void writeFile(Document doc, String fileName) throws IOException {
         try (FileOutputStream out = new FileOutputStream(
-                projectData.getFolderPath() + '\\' + fileName + ".xml")
+                projectData.getFolderPath() + '/' + fileName + ".xml")
         ) {
             writeFile(doc, out);
         } catch (Exception e) {
@@ -416,7 +415,6 @@ public class ProjectFileManager {
             Element studentElement = (Element) studentNode;
             while (studentElement != null) {
                 Student student = new Student(
-                        Integer.parseInt(studentElement.getAttribute("id")),
                         new Data(Data.Type.Name, studentElement.getTextContent()),
                         new Data(Data.Type.SerialNumber,
                                 studentElement.getAttribute("serialNumber")),
@@ -577,7 +575,7 @@ public class ProjectFileManager {
     private Document getDocument(String fileName) {
         if (fileName == null) return null;
         Document doc;
-        File dataFile = new File(projectData.getFolderPath() + '\\' + fileName + ".xml");
+        File dataFile = new File(projectData.getFolderPath() + '/' + fileName + ".xml");
         try {
             doc = docBuilder.parse(dataFile);
             deleteIndentation(doc);

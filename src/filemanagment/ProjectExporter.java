@@ -7,6 +7,9 @@ import entity.Data;
 import org.apache.poi.xwpf.usermodel.*;
 
 import javax.swing.*;
+import javax.swing.filechooser.FileFilter;
+import java.awt.*;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -90,8 +93,9 @@ public class ProjectExporter {
     }
 
 
-    public static void export(ProjectData projectData, String absolutePath) {
-        try (FileInputStream input = new FileInputStream(absolutePath);
+    public static void export(ProjectData projectData, String outputPath) {
+        String templatePath = projectData.getFolderPath() + "/template.docx";
+        try (FileInputStream input = new FileInputStream(templatePath);
              XWPFDocument templateDoc = new XWPFDocument(input);
              XWPFDocument holderDoc = new XWPFDocument()
         ) {
@@ -139,13 +143,59 @@ public class ProjectExporter {
                     newRun.setText(paragraphText);
                 }
             }
-            try (FileOutputStream output = new FileOutputStream(absolutePath.substring(0, absolutePath.lastIndexOf("\\") + 1) + "test.docx")) {
+            try (FileOutputStream output = new FileOutputStream(outputPath)) {
                 templateDoc.write(output);
             } catch (IOException e) {
                 System.err.println(e.getMessage());
             }
         } catch (IOException e) {
             System.err.println(e.getMessage());
+        }
+    }
+
+    public static String showFileChooser(Component parent, String defaultFileName) {
+        JFileChooser fileChooser = new JFileChooser() {
+            @Override
+            public void approveSelection() {
+                if (getSelectedFile().exists()) {
+                    int answer = JOptionPane.showConfirmDialog(
+                            this,
+                            "Rewrite file?",
+                            "File already exists",
+                            JOptionPane.OK_CANCEL_OPTION,
+                            JOptionPane.QUESTION_MESSAGE
+                    );
+                    if (answer == JOptionPane.CANCEL_OPTION) {
+                        return;
+                    }
+                }
+                super.approveSelection();
+            }
+        };
+        fileChooser.setAcceptAllFileFilterUsed(false);
+        fileChooser.setFileFilter(new FileFilter() {
+            @Override
+            public boolean accept(File f) {
+                if (f.isDirectory()) return true;
+                String fileName = f.getName();
+                return fileName.substring(fileName.indexOf(".")).equals(".docx");
+            }
+
+            @Override
+            public String getDescription() {
+                return "Docx files (.docx)";
+            }
+        });
+        fileChooser.setSelectedFile(new File(defaultFileName));
+
+        int chooseResult = fileChooser.showSaveDialog(parent);
+        if (chooseResult == JFileChooser.APPROVE_OPTION) {
+            String selectedPath = fileChooser.getSelectedFile().getPath();
+            int pivot = selectedPath.indexOf(".");
+            return pivot == -1 ? selectedPath + ".docx" : selectedPath;
+        }
+        else {
+            return null;
         }
     }
 }

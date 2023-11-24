@@ -22,7 +22,7 @@ public class LabelRenderer extends DefaultTableCellRenderer {
             } else {
                 c.setBorder(null);
             }
-            if (hasFocus) {
+            if (hasFocus || isSelected) {
                 c.setBackground(table.getSelectionBackground());
             } else {
                 c.setBackground(null);

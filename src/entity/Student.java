@@ -1,23 +1,17 @@
 package entity;
 
 public class Student {
-    private final int ID;
     private Data name;
     private Data serialNumber;
     private String result;
     private Data mark;
     public final static String[] results = new String[] {"Зачтено", "Не зачтено", "Не явился"};
 
-    public Student(int ID, Data name, Data serialNumber, String result, Data mark) {
-        this.ID = ID;
+    public Student(Data name, Data serialNumber, String result, Data mark) {
         this.name = name;
         this.serialNumber = serialNumber;
         this.result = (result == null) ? results[0] : result;
         this.mark = mark;
-    }
-
-    public int getID() {
-        return ID;
     }
 
     public Data getName() {

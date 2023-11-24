@@ -7,14 +7,14 @@ import entity.Data;
 import javax.swing.*;
 import javax.swing.event.TableModelListener;
 import java.awt.*;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
 import java.util.HashMap;
 
 public class Body extends ComponentManager implements Writable {
     private JScrollPane scroll;
     private ManagedTable table;
     private JButton addButton;
+
+    private JButton removeButton;
     public Body(JFrame parent) {
         super(parent);
     }
@@ -46,16 +46,22 @@ public class Body extends ComponentManager implements Writable {
         table = new ManagedTable();
         scroll = new JScrollPane(table);
         addButton = new JButton();
+        removeButton = new JButton();
     }
 
     @Override
     protected void configComponents() {
         scroll.setBorder(BorderFactory.createEmptyBorder());
 
-        ImageIcon icon = new ImageIcon("button.png");
+        String path = System.getProperty("user.dir") + "/src/images/";
+        ImageIcon icon = new ImageIcon(path + "plus_button_icon.png");
         icon = new ImageIcon(icon.getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH));
         addButton.setIcon(icon);
         addButton.setFocusPainted(false);
+        icon = new ImageIcon(path + "minus_button_icon.png");
+        icon = new ImageIcon(icon.getImage().getScaledInstance(18, 18, Image.SCALE_SMOOTH));
+        removeButton.setIcon(icon);
+        removeButton.setFocusPainted(false);
     }
 
     @Override
@@ -64,6 +70,7 @@ public class Body extends ComponentManager implements Writable {
 
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.TRAILING));
         panel.setOpaque(false);
+        panel.add(removeButton);
         panel.add(addButton);
         container.add(panel, BorderLayout.PAGE_END);
     }
@@ -74,6 +81,7 @@ public class Body extends ComponentManager implements Writable {
         scroll.setMinimumSize(new Dimension(s.width + 20, 0));
         scroll.setPreferredSize(new Dimension(s.width + 20, 200));
         addButton.setPreferredSize(new Dimension(100, 25));
+        removeButton.setPreferredSize(new Dimension(100, 25));
     }
 
     @Override
@@ -95,23 +103,19 @@ public class Body extends ComponentManager implements Writable {
                     JOptionPane.ERROR_MESSAGE
             );
         });
-        table.addFocusListener(new FocusListener() {
-            @Override
-            public void focusGained(FocusEvent e) {
+
+        removeButton.addActionListener(e -> {
+            if (table.getSelectedColumn() != 0) {
+                JOptionPane.showMessageDialog(
+                        parent,
+                        "Перед удалением необходимо выбрать запись, нажав на ее номер",
+                        "Внимание!",
+                        JOptionPane.ERROR_MESSAGE
+                );
             }
-
-            @Override
-            public void focusLost(FocusEvent e) {
-                if (table.isEditing()) {
-                    DefaultCellEditor editor = (DefaultCellEditor) table.getCellEditor(table.getEditingRow(), table.getEditingColumn());
-                    Component component = editor.getComponent();
-                    Point mousePosition = MouseInfo.getPointerInfo().getLocation();
-                    SwingUtilities.convertPointFromScreen(mousePosition, component);
-
-                    if (!component.contains(mousePosition)) {
-                        editor.stopCellEditing();
-                    }
-                }
+            else {
+                ManagedTableModel tableModel = (ManagedTableModel) table.getModel();
+                tableModel.removeRow(table.getSelectedRow());
             }
         });
     }

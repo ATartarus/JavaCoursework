@@ -1,12 +1,10 @@
 package containers;
 
 import components.managedTable.ManagedTableModel;
-import entity.Student;
 
 import javax.swing.*;
 import javax.swing.event.TableModelEvent;
 import java.awt.*;
-import java.util.HashMap;
 
 public class Footer extends ComponentManager {
     private JLabel appearedStudents;
