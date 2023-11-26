@@ -14,8 +14,9 @@ import filemanagment.ProjectFileManager;
 import javax.swing.*;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
-import javax.swing.plaf.basic.BasicComboBoxUI;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.util.HashMap;
 
@@ -28,6 +29,8 @@ public class MainWindow extends JFrame {
     public MainWindow(Application application) {
         this.app = application;
 
+        ImageIcon icon = new ImageIcon("src/images/main_window_icon.png");
+        setIconImage(icon.getImage());
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setJMenuBar(createMenu());
         setContentPane(new JPanel(new GridBagLayout()));
@@ -62,11 +65,13 @@ public class MainWindow extends JFrame {
         JMenu group = new JMenu("Group");
         JMenu export = new JMenu("Export");
         JMenu about = new JMenu("About");
+        JMenu help = new JMenu("Help");
 
         menuBar.add(project);
         menuBar.add(group);
         menuBar.add(export);
         menuBar.add(about);
+        menuBar.add(help);
 
         JMenuItem item = new JMenuItem("New");
         project.add(item);
@@ -92,8 +97,19 @@ public class MainWindow extends JFrame {
         item.addActionListener(e -> onExportClick());
         export.add(item);
 
-        about.add(new JMenuItem("Author"));
-        about.add(new JMenuItem("Program"));
+        item = new JMenuItem("Author");
+        item.addActionListener(e -> onAboutAuthorClick());
+        about.add(item);
+        item = new JMenuItem("Program");
+        item.addActionListener(e -> onAboutProgramClick());
+        about.add(item);
+
+        help.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                onHelpClick();
+            }
+        });
 
         return menuBar;
     }
@@ -117,6 +133,7 @@ public class MainWindow extends JFrame {
     }
 
     private void onOpenProjectClick() {
+        String currentProjectName = app.getData().getProjectFileName();
         if (app.getFileManager().showFileChooser(this, ProjectFileManager.OPEN_MODE)) {
             int answer = JOptionPane.showConfirmDialog(
                     this,
@@ -125,7 +142,10 @@ public class MainWindow extends JFrame {
                     JOptionPane.YES_NO_OPTION
             );
             if (answer == JOptionPane.OK_OPTION) {
+                String newProjectName = app.getData().getProjectFileName();
+                app.getData().setProjectFileName(currentProjectName);
                 onSaveProjectClick();
+                app.getData().setProjectFileName(newProjectName);
             }
 
             try {
@@ -174,7 +194,13 @@ public class MainWindow extends JFrame {
         }
         try {
             int answer = JOptionPane.OK_OPTION;
-            if (app.getFileManager().groupExists(groupID)) {
+            boolean exists;
+            try {
+                exists = app.getFileManager().groupExists(groupID);
+            } catch (IOException e) {
+                exists = false;
+            }
+            if (exists) {
                 answer = JOptionPane.showConfirmDialog(
                         this,
                         "<html>Группа с данным номером уже существует<br>Перезаписать?</html>",
@@ -227,6 +253,18 @@ public class MainWindow extends JFrame {
                 return null;
             }
         }.execute();
+    }
+
+    private void onAboutAuthorClick() {
+        new AboutAuthorWindow(this);
+    }
+
+    private void onAboutProgramClick() {
+        new AboutProgramWindow(new JFrame());
+    }
+
+    private void onHelpClick() {
+        new HelpWindow();
     }
 
     private void showErrorMessage(String message, String title) {
@@ -320,7 +358,7 @@ public class MainWindow extends JFrame {
             dateTextField.putClientProperty("isValid", true);
             dateTextField.setHorizontalAlignment(SwingConstants.CENTER);
 
-            ImageIcon icon = new ImageIcon(System.getProperty("user.dir") + "/src/images/plus_button_icon.png");
+            ImageIcon icon = new ImageIcon("src/images/plus_button_icon.png");
             icon = new ImageIcon(icon.getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH));
             JButton[] buttons = new JButton[] { groupButton, facultyButton, disciplineButton, academicButton };
             for (JButton button : buttons) {
@@ -397,7 +435,7 @@ public class MainWindow extends JFrame {
             add(cell, gbc);
 
             gbc.gridx = 4;
-            gbc.gridwidth = 2;
+            gbc.gridwidth = 1;
             gbc.weightx = 0.3;
             cell = createCell("Дата проведения:", dateTextField, null);
             cell.remove(cell.getComponentCount() - 1);
@@ -564,13 +602,12 @@ public class MainWindow extends JFrame {
         private void configComponents() {
             scroll.setBorder(BorderFactory.createEmptyBorder());
 
-            String path = System.getProperty("user.dir") + "/src/images/";
-            ImageIcon icon = new ImageIcon(path + "plus_button_icon.png");
+            ImageIcon icon = new ImageIcon( "src/images/plus_button_icon.png");
             icon = new ImageIcon(icon.getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH));
             addButton.setIcon(icon);
             addButton.setBackground(Color.white);
             addButton.setFocusPainted(false);
-            icon = new ImageIcon(path + "minus_button_icon.png");
+            icon = new ImageIcon("src/images/minus_button_icon.png");
             icon = new ImageIcon(icon.getImage().getScaledInstance(18, 18, Image.SCALE_SMOOTH));
             removeButton.setIcon(icon);
             removeButton.setBackground(Color.white);

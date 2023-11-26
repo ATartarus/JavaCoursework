@@ -88,7 +88,9 @@ public class ProjectFileManager {
             dataDoc = docBuilder.newDocument();
         }
         saveHeader(dataDoc, false);
-        dataDoc.getFirstChild().appendChild(dataDoc.createElement("body"));
+        if (getChildNodeByName(dataDoc.getFirstChild(), "body") == null) {
+            dataDoc.getFirstChild().appendChild(dataDoc.createElement("body"));
+        }
 
         Document projectDoc = getDocument(projectData.getProjectFileName());
         if (projectDoc == null) {
@@ -402,14 +404,13 @@ public class ProjectFileManager {
      * Parses group node to given destination.
      * @param group Group node to parse.
      * @param destination Writable object containing group component.
-     * @throws XMLParseException If group node is empty.
      */
-    private void parseGroup(Node group, Writable destination) throws XMLParseException {
+    private void parseGroup(Node group, Writable destination) {
         JComponent tableObject = projectData.findComponent(destination.getClassName(), "table");
         if (tableObject instanceof ManagedTable table) {
             ((ManagedTableModel) table.getModel()).clear();
             Node studentNode = group.getFirstChild();
-            if (studentNode == null) throw new XMLParseException("Group node is empty");
+            if (studentNode == null) return;
 
             Element studentElement = (Element) studentNode;
             while (studentElement != null) {
@@ -547,8 +548,9 @@ public class ProjectFileManager {
         fileChooser.setFileFilter(new FileFilter() {
             @Override
             public boolean accept(File f) {
-                if (f.isDirectory()) return false;
                 String fileName = f.getName();
+                if (f.isDirectory() || !fileName.contains(".")) return false;
+                if (fileName.isBlank()) return false;
                 return fileName.substring(fileName.indexOf(".")).equals(".xml") &&
                         !fileName.substring(0, fileName.indexOf(".")).equals(projectData.getDataFileName());
             }

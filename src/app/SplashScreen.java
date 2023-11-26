@@ -2,78 +2,93 @@ package app;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 public class SplashScreen extends JWindow {
+    private final JPanel mainPanel;
+    private final JPanel innerGridPanel;
+    private final JPanel buttonsPanel;
+    private final Timer exitTimer;
     public SplashScreen() {
+        exitTimer = new Timer(30000, e -> onExitButtonClick());
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowOpened(WindowEvent e) {
+                exitTimer.start();
+            }
+        });
         setSize(700,  450);
 
-        JPanel mainPanel = new JPanel();
+        mainPanel = new JPanel();
+        innerGridPanel = new JPanel(new GridLayout(1, 2));
+        buttonsPanel = new JPanel(new GridLayout(1, 2, 5, 0));
+
         mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.PAGE_AXIS));
         mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        buttonsPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+
+        populateMainPanel();
+        populateInnerGridPanel();
+        populateButtonsPanel();
+
         add(mainPanel, BorderLayout.CENTER);
+        mainPanel.add(innerGridPanel);
+        addCenteredLabel("Минск, 2023", mainPanel, null);
+        add(buttonsPanel, BorderLayout.SOUTH);
 
+        setLocationRelativeTo(null);
+        setVisible(true);
+    }
 
-        JLabel l = new JLabel("Белорусский национальный технический университет");
-        l.setAlignmentX(Component.CENTER_ALIGNMENT);
-        mainPanel.add(l);
+    private void populateMainPanel() {
+        String fontName = UIManager.getFont("Label.font").getName();
+
+        addCenteredLabel("Белорусский национальный технический университет",
+                mainPanel, null);
 
         mainPanel.add(Box.createRigidArea(new Dimension(0, 10)));
 
-        l = new JLabel("Факультет информационных технологий и робототехники");
-        l.setAlignmentX(Component.CENTER_ALIGNMENT);
-        mainPanel.add(l);
-        l = new JLabel("Кафедра программного обеспечения информационных систем и технологии");
-        l.setAlignmentX(Component.CENTER_ALIGNMENT);
-        mainPanel.add(l);
+        addCenteredLabel("Факультет информационных технологий и робототехники",
+                mainPanel, null);
+        addCenteredLabel("Кафедра программного обеспечения информационных систем и технологии",
+                mainPanel, null);
 
         mainPanel.add(Box.createRigidArea(new Dimension(0, 50)));
 
-        l = new JLabel("Курсовая работа");
-        l.setFont(new Font(l.getFont().getName(), Font.BOLD,20));
-        l.setAlignmentX(Component.CENTER_ALIGNMENT);
-        mainPanel.add(l);
-        l = new JLabel("по дисциплине «Программирование на языке Java»");
-        l.setFont(new Font(l.getFont().getName(), Font.PLAIN, 18));
-        l.setAlignmentX(Component.CENTER_ALIGNMENT);
-        mainPanel.add(l);
+        addCenteredLabel("Курсовая работа",
+                mainPanel, new Font(fontName, Font.BOLD,20));
+        addCenteredLabel("по дисциплине «Программирование на языке Java»",
+                mainPanel, new Font(fontName, Font.PLAIN, 18));
 
         mainPanel.add(Box.createRigidArea(new Dimension(0, 10)));
 
-        l = new JLabel("Ведомость для проведения зачёта");
-        l.setFont(new Font(l.getFont().getName(), Font.BOLD, 22));
-        l.setAlignmentX(Component.CENTER_ALIGNMENT);
-        mainPanel.add(l);
+        addCenteredLabel("Ведомость для проведения зачёта",
+                mainPanel, new Font(fontName, Font.BOLD, 22));
+    }
 
-
-        JPanel innerGrid = new JPanel(new GridLayout(1, 2));
-        mainPanel.add(innerGrid);
+    private void populateInnerGridPanel() {
         JLabel imageLabel = new JLabel();
         imageLabel.setHorizontalAlignment(SwingConstants.CENTER);
         ImageIcon icon = new ImageIcon("src/images/splash_icon.png");
         icon = new ImageIcon(icon.getImage().getScaledInstance(120, 120, Image.SCALE_SMOOTH));
         imageLabel.setIcon(icon);
-        innerGrid.add(imageLabel);
+        innerGridPanel.add(imageLabel);
 
         JPanel innerInfo = new JPanel();
         innerInfo.setBorder(BorderFactory.createEmptyBorder(25, 10, 0, 0));
-        innerGrid.add(innerInfo);
+        innerGridPanel.add(innerInfo);
         innerInfo.setLayout(new BoxLayout(innerInfo, BoxLayout.PAGE_AXIS));
-        innerInfo.add( new JLabel("Выполнил: Студент группы 10702221"));
+        innerInfo.add(new JLabel("Выполнил: Студент группы 10702221"));
         innerInfo.add(new JLabel("Пряжко Николай Кириллович"));
 
         innerInfo.add(Box.createRigidArea(new Dimension(0, 30)));
 
         innerInfo.add(new JLabel("Преподаватель: к.ф.-м.н.,доц."));
         innerInfo.add(new JLabel("Сидорик Валерий Владимирович"));
+    }
 
-        l = new JLabel("Минск, 2023");
-        l.setAlignmentX(Component.CENTER_ALIGNMENT);
-        mainPanel.add(l);
-
-
-        JPanel buttonsPanel = new JPanel(new GridLayout(1, 2, 5, 0));
-        add(buttonsPanel, BorderLayout.SOUTH);
-        buttonsPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+    private void populateButtonsPanel() {
         JButton nextButton = new JButton("Далее");
         nextButton.setBackground(Color.white);
         JButton exitButton = new JButton("Выход");
@@ -85,7 +100,15 @@ public class SplashScreen extends JWindow {
         exitButton.addActionListener(e -> onExitButtonClick());
     }
 
+    public static void addCenteredLabel(String text, JPanel container, Font font) {
+        JLabel l = new JLabel(text);
+        if (font != null) l.setFont(font);
+        l.setAlignmentX(Component.CENTER_ALIGNMENT);
+        container.add(l);
+    }
+
     private void onNextButtonClick() {
+        exitTimer.stop();
         SwingUtilities.invokeLater(() -> {
             new Application();
             dispose();

@@ -1,9 +1,16 @@
 package filemanagment;
 
+import app.Application;
+
 import javax.swing.*;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 
 public class ProjectData {
@@ -14,7 +21,7 @@ public class ProjectData {
     private final PropertyChangeSupport propertySup;
 
     public ProjectData(Writable[] containers) {
-        this(containers, System.getProperty("user.dir"));
+        this(containers, System.getProperty("user.home"));
     }
 
     public ProjectData(Writable[] containers, String folderPath) {
@@ -22,9 +29,26 @@ public class ProjectData {
         for (Writable source : containers) {
             this.containers.put(source.getClassName(), source);
         }
-        this.folderPath = folderPath + "/data";
+        this.folderPath = folderPath + "/Documents/" + Application.NAME;
         this.dataFileName = "data";
         this.propertySup = new PropertyChangeSupport(this);
+
+        File dataFolder = new File(this.folderPath);
+        if (!dataFolder.exists()) {
+            if (!dataFolder.mkdir()) {
+                System.err.println("data folder was not created");
+            }
+        }
+
+        Path template = Paths.get(this.folderPath + "/template.docx");
+        if (!Files.exists(template)) {
+            template = Paths.get(System.getProperty("user.dir") + "/data/template.docx");
+            try {
+                Files.copy(template, Paths.get(this.folderPath + "/template.docx"), StandardCopyOption.REPLACE_EXISTING);
+            } catch (IOException e) {
+                System.err.println("Copy template failed");
+            }
+        }
 
         setDefaultProjectName();
     }
@@ -45,7 +69,7 @@ public class ProjectData {
         return dataFileName;
     }
 
-    protected void setProjectFileName(String projectFileName) {
+    public void setProjectFileName(String projectFileName) {
         String oldVal = this.projectFileName;
         this.projectFileName = projectFileName;
         propertySup.firePropertyChange("projectFileName", oldVal, projectFileName);

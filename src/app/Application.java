@@ -9,7 +9,7 @@ import java.util.Enumeration;
 
 
 public class Application {
-    private static final String NAME = "Journal";
+    public static final String NAME = "Journal";
     private final ProjectData projectData;
     private final ProjectFileManager fileManager;
 
@@ -53,9 +53,7 @@ public class Application {
         configUIDefaults();
 
         SwingUtilities.invokeLater(() -> {
-            SplashScreen splashScreen = new SplashScreen();
-            splashScreen.setLocationRelativeTo(null);
-            splashScreen.setVisible(true);
+            new SplashScreen();
         });
     }
 }
