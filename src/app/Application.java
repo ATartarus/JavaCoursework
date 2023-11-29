@@ -53,7 +53,8 @@ public class Application {
         configUIDefaults();
 
         SwingUtilities.invokeLater(() -> {
-            new SplashScreen();
+            new Application();
+            //new SplashScreen();
         });
     }
 }

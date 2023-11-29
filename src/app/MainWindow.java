@@ -93,8 +93,11 @@ public class MainWindow extends JFrame {
         item.addActionListener(e -> onLoadGroupClick());
         group.add(item);
 
-        item = new JMenuItem("As docx");
-        item.addActionListener(e -> onExportClick());
+        item = new JMenuItem("Docx locally");
+        item.addActionListener(e -> onLocalExportClick());
+        export.add(item);
+        item = new JMenuItem("Docx via email");
+        item.addActionListener(e -> onMailExportClick());
         export.add(item);
 
         item = new JMenuItem("Author");
@@ -243,16 +246,29 @@ public class MainWindow extends JFrame {
         }
     }
 
-    private void onExportClick() {
+    private void onLocalExportClick() {
         String fileName = ProjectExporter.showFileChooser(this, app.getData().getProjectFileName());
         if (fileName == null) return;
         new SwingWorker<Void, Void>() {
             @Override
             protected Void doInBackground() {
-                ProjectExporter.export(app.getData(), fileName);
+                try {
+                    ProjectExporter.export(app.getData(), fileName);
+                } catch (IOException e) {
+                    JOptionPane.showMessageDialog(
+                            MainWindow.this,
+                            e.getMessage(),
+                            "Error",
+                            JOptionPane.ERROR_MESSAGE
+                    );
+                }
                 return null;
             }
         }.execute();
+    }
+
+    private void onMailExportClick() {
+        new SendEmailWindow(this, app);
     }
 
     private void onAboutAuthorClick() {
@@ -260,7 +276,7 @@ public class MainWindow extends JFrame {
     }
 
     private void onAboutProgramClick() {
-        new AboutProgramWindow(new JFrame());
+        new AboutProgramWindow(this);
     }
 
     private void onHelpClick() {

@@ -27,7 +27,7 @@ public class ProjectExporter {
         else if (component instanceof JComboBox<?> comboBox) {
             result = (String) comboBox.getSelectedItem();
         }
-        return result;
+        return result == null ? "null" : result;
     }
 
     private static void createTable(XWPFDocument doc, ManagedTable table) {
@@ -92,7 +92,7 @@ public class ProjectExporter {
     }
 
 
-    public static void export(ProjectData projectData, String outputPath) {
+    public static void export(ProjectData projectData, String outputPath) throws IOException {
         String templatePath = projectData.getFolderPath() + "/template.docx";
         try (FileInputStream input = new FileInputStream(templatePath);
              XWPFDocument templateDoc = new XWPFDocument(input);
@@ -145,10 +145,10 @@ public class ProjectExporter {
             try (FileOutputStream output = new FileOutputStream(outputPath)) {
                 templateDoc.write(output);
             } catch (IOException e) {
-                System.err.println(e.getMessage());
+                throw new IOException(e.getMessage());
             }
         } catch (IOException e) {
-            System.err.println(e.getMessage());
+            throw new IOException(e.getMessage());
         }
     }
 

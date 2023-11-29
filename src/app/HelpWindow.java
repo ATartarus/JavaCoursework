@@ -15,6 +15,9 @@ public class HelpWindow extends JFrame {
         super("Help");
         setSize(600, 400);
         setMinimumSize(new Dimension(400, 200));
+        ImageIcon icon = new ImageIcon("src/images/help_window_icon.png");
+        setIconImage(icon.getImage());
+
         tree = new JTree();
         infoPane = new JEditorPane();
         JPanel treePane = new JPanel(new BorderLayout());

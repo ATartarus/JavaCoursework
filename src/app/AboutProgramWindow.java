@@ -4,8 +4,8 @@ import javax.swing.*;
 import java.awt.*;
 
 public class AboutProgramWindow extends JDialog {
-    public AboutProgramWindow(JFrame frame) {
-        super(frame, null, true);
+    public AboutProgramWindow(JFrame parentFrame) {
+        super(parentFrame, null, true);
         setResizable(false);
         ((JPanel) getContentPane()).setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         getContentPane().setLayout(new BorderLayout(10, 10));
