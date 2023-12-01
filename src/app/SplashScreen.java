@@ -1,9 +1,12 @@
 package app;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.IOException;
+import java.io.InputStream;
 
 public class SplashScreen extends JWindow {
     private final JPanel mainPanel;
@@ -70,9 +73,16 @@ public class SplashScreen extends JWindow {
     private void populateInnerGridPanel() {
         JLabel imageLabel = new JLabel();
         imageLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        ImageIcon icon = new ImageIcon("src/images/splash_icon.png");
-        icon = new ImageIcon(icon.getImage().getScaledInstance(120, 120, Image.SCALE_SMOOTH));
-        imageLabel.setIcon(icon);
+
+        try (InputStream input = getClass().getResourceAsStream("/images/splash_icon.png")) {
+            if (input != null) {
+                ImageIcon icon = new ImageIcon(ImageIO.read(input));
+                icon = new ImageIcon(icon.getImage().getScaledInstance(120, 120, Image.SCALE_SMOOTH));
+                imageLabel.setIcon(icon);
+            }
+        } catch (IOException e) {
+            System.err.println(e.getMessage());
+        }
         innerGridPanel.add(imageLabel);
 
         JPanel innerInfo = new JPanel();

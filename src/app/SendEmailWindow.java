@@ -4,11 +4,12 @@ import email.EmailSender;
 import filemanagment.ProjectData;
 import filemanagment.ProjectExporter;
 
-import javax.mail.Message;
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Properties;
 
 public class SendEmailWindow extends JDialog {
@@ -24,8 +25,16 @@ public class SendEmailWindow extends JDialog {
     public SendEmailWindow(JFrame parentFrame, Application app) {
         super(parentFrame, "Send email", true);
         fileCreator = new FileCreator(app.getData());
-        ImageIcon icon = new ImageIcon("src/images/email_window_icon.png");
-        setIconImage(icon.getImage());
+
+        try (InputStream input = getClass().getResourceAsStream("/images/email_window_icon.png")) {
+            if (input != null) {
+                ImageIcon icon = new ImageIcon(ImageIO.read(input));
+                setIconImage(icon.getImage());
+            }
+        } catch (IOException e) {
+            System.err.println(e.getMessage());
+        }
+
         JPanel contentPane = new JPanel(new BorderLayout());
         contentPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         setContentPane(contentPane);
@@ -41,6 +50,7 @@ public class SendEmailWindow extends JDialog {
         add(messagePanel, BorderLayout.CENTER);
 
         JButton sendButton = new JButton("Отправить");
+        sendButton.setBackground(Color.white);
         sendButton.addActionListener(e -> onSendButtonClick());
         add(sendButton, BorderLayout.SOUTH);
 

@@ -1,7 +1,10 @@
 package app;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
+import java.io.IOException;
+import java.io.InputStream;
 
 public class AboutProgramWindow extends JDialog {
     public AboutProgramWindow(JFrame parentFrame) {
@@ -17,9 +20,15 @@ public class AboutProgramWindow extends JDialog {
         add(p, BorderLayout.NORTH);
 
         JLabel imageLabel = new JLabel();
-        ImageIcon icon = new ImageIcon("src/images/about_program_image.png");
-        icon = new ImageIcon(icon.getImage().getScaledInstance(400, 300, Image.SCALE_SMOOTH));
-        imageLabel.setIcon(icon);
+        try (InputStream input = getClass().getResourceAsStream("/images/about_program_image.png")) {
+            if (input != null) {
+                ImageIcon icon = new ImageIcon(ImageIO.read(input));
+                icon = new ImageIcon(icon.getImage().getScaledInstance(400, 300, Image.SCALE_SMOOTH));
+                imageLabel.setIcon(icon);
+            }
+        } catch (IOException e) {
+            System.err.println(e.getMessage());
+        }
         imageLabel.setBorder(BorderFactory.createLineBorder(Color.gray, 1));
         add(imageLabel, BorderLayout.WEST);
 
@@ -33,6 +42,7 @@ public class AboutProgramWindow extends JDialog {
         mainPanel.add(new JLabel("<html><b>3.</b> Подсчитывать количество аттестованных/не аттестованных</html>"));
         mainPanel.add(new JLabel("<html><b>4.</b> Экспортировать полученную ведомость в формате docx</html>"));
         mainPanel.add(new JLabel("<html><b>5.</b> Изменять шаблон экспортированного документа</html>"));
+        mainPanel.add(new JLabel("<html><b>6.</b> Отправлять результаты по почте</html>"));
 
         JPanel buttonPanel = new JPanel(new BorderLayout());
         JButton backButton = new JButton("Назад");

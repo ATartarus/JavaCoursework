@@ -1,7 +1,10 @@
 package app;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
+import java.io.IOException;
+import java.io.InputStream;
 
 public class AboutAuthorWindow extends JDialog {
     public AboutAuthorWindow(JFrame parentFrame) {
@@ -15,9 +18,15 @@ public class AboutAuthorWindow extends JDialog {
         add(mainPanel, BorderLayout.SOUTH);
 
         JLabel authorPhoto = new JLabel();
-        ImageIcon image = new ImageIcon("src/images/whoami.jpg");
-        image = new ImageIcon(image.getImage().getScaledInstance(330, 330, Image.SCALE_SMOOTH));
-        authorPhoto.setIcon(image);
+        try (InputStream input = getClass().getResourceAsStream("/images/whoami.jpg")) {
+            if (input != null) {
+                ImageIcon icon = new ImageIcon(ImageIO.read(input));
+                icon = new ImageIcon(icon.getImage().getScaledInstance(330, 330, Image.SCALE_SMOOTH));
+                authorPhoto.setIcon(icon);
+            }
+        } catch (IOException e) {
+            System.err.println(e.getMessage());
+        }
         authorPhoto.setAlignmentX(Component.CENTER_ALIGNMENT);
         add(authorPhoto, BorderLayout.CENTER);
 

@@ -58,7 +58,6 @@ public class Data {
     public void setText(String text) {
         this.text = text;
         try {
-            System.out.println("Data::setText:: " + type + " validate");
             Validator.validate(text, type);
             message = null;
             valid = true;

@@ -52,9 +52,6 @@ public class Application {
     public static void main(String[] args) {
         configUIDefaults();
 
-        SwingUtilities.invokeLater(() -> {
-            new Application();
-            //new SplashScreen();
-        });
+        SwingUtilities.invokeLater(SplashScreen::new);
     }
 }

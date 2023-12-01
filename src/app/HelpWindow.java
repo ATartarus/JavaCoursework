@@ -1,11 +1,13 @@
 package app;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.text.Document;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import java.awt.*;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 
 public class HelpWindow extends JFrame {
@@ -15,8 +17,15 @@ public class HelpWindow extends JFrame {
         super("Help");
         setSize(600, 400);
         setMinimumSize(new Dimension(400, 200));
-        ImageIcon icon = new ImageIcon("src/images/help_window_icon.png");
-        setIconImage(icon.getImage());
+
+        try (InputStream input = getClass().getResourceAsStream("/images/help_window_icon.png")) {
+            if (input != null) {
+                ImageIcon icon = new ImageIcon(ImageIO.read(input));
+                setIconImage(icon.getImage());
+            }
+        } catch (IOException e) {
+            System.err.println(e.getMessage());
+        }
 
         tree = new JTree();
         infoPane = new JEditorPane();

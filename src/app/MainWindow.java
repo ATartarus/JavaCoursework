@@ -11,6 +11,7 @@ import exceptions.XMLParseException;
 import filemanagment.ProjectExporter;
 import filemanagment.ProjectFileManager;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
@@ -18,6 +19,7 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 
 public class MainWindow extends JFrame {
@@ -29,8 +31,14 @@ public class MainWindow extends JFrame {
     public MainWindow(Application application) {
         this.app = application;
 
-        ImageIcon icon = new ImageIcon("src/images/main_window_icon.png");
-        setIconImage(icon.getImage());
+        try (InputStream input = getClass().getResourceAsStream("/images/main_window_icon.png")) {
+            if (input != null) {
+                ImageIcon icon = new ImageIcon(ImageIO.read(input));
+                setIconImage(icon.getImage());
+            }
+        } catch (IOException e) {
+            System.err.println(e.getMessage());
+        }
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setJMenuBar(createMenu());
         setContentPane(new JPanel(new GridBagLayout()));
@@ -374,8 +382,16 @@ public class MainWindow extends JFrame {
             dateTextField.putClientProperty("isValid", true);
             dateTextField.setHorizontalAlignment(SwingConstants.CENTER);
 
-            ImageIcon icon = new ImageIcon("src/images/plus_button_icon.png");
-            icon = new ImageIcon(icon.getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH));
+            ImageIcon icon = null;
+            try (InputStream input = getClass().getResourceAsStream("/images/plus_button_icon.png")) {
+                if (input != null) {
+                    icon = new ImageIcon(ImageIO.read(input));
+                    icon = new ImageIcon(icon.getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH));
+                }
+            } catch (IOException e) {
+                System.err.println(e.getMessage());
+            }
+
             JButton[] buttons = new JButton[] { groupButton, facultyButton, disciplineButton, academicButton };
             for (JButton button : buttons) {
                 button.setIcon(icon);
@@ -494,6 +510,26 @@ public class MainWindow extends JFrame {
 
                 dial.addDialogListener(item -> addItem(item, academicComboBox));
                 dial.setVisible(true);
+            });
+
+            semesterComboBox.addActionListener(e -> {
+                if (semesterComboBox.getSelectedItem() != null) {
+                    int selectedNumber = Integer.parseInt(semesterComboBox.getSelectedItem().toString());
+                    courseComboBox.setSelectedItem(String.valueOf((int)Math.ceil(selectedNumber / 2.0)));
+                }
+            });
+
+            courseComboBox.addActionListener(e -> {
+                if (courseComboBox.getSelectedItem() != null) {
+                    int course = Integer.parseInt(courseComboBox.getSelectedItem().toString());
+                    Object sem = semesterComboBox.getSelectedItem();
+                    if (sem != null) {
+                        int delta = course * 2 - Integer.parseInt(sem.toString());
+                        if (delta != 0 && delta != 1) {
+                            semesterComboBox.setSelectedItem(String.valueOf(course * 2 - 1));
+                        }
+                    }
+                }
             });
         }
 
@@ -618,14 +654,28 @@ public class MainWindow extends JFrame {
         private void configComponents() {
             scroll.setBorder(BorderFactory.createEmptyBorder());
 
-            ImageIcon icon = new ImageIcon( "src/images/plus_button_icon.png");
-            icon = new ImageIcon(icon.getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH));
-            addButton.setIcon(icon);
+            try (InputStream input = getClass().getResourceAsStream("/images/plus_button_icon.png")) {
+                if (input != null) {
+                    ImageIcon icon = new ImageIcon(ImageIO.read(input));
+                    icon = new ImageIcon(icon.getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH));
+                    addButton.setIcon(icon);
+                }
+            } catch (IOException e) {
+                System.err.println(e.getMessage());
+            }
+
             addButton.setBackground(Color.white);
             addButton.setFocusPainted(false);
-            icon = new ImageIcon("src/images/minus_button_icon.png");
-            icon = new ImageIcon(icon.getImage().getScaledInstance(18, 18, Image.SCALE_SMOOTH));
-            removeButton.setIcon(icon);
+            try (InputStream input = getClass().getResourceAsStream("/images/minus_button_icon.png")) {
+                if (input != null) {
+                    ImageIcon icon = new ImageIcon(ImageIO.read(input));
+                    icon = new ImageIcon(icon.getImage().getScaledInstance(18, 18, Image.SCALE_SMOOTH));
+                    removeButton.setIcon(icon);
+                }
+            } catch (IOException e) {
+                System.err.println(e.getMessage());
+            }
+
             removeButton.setBackground(Color.white);
             removeButton.setFocusPainted(false);
         }
