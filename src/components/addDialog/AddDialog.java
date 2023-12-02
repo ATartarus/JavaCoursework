@@ -10,12 +10,24 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 
+/**
+ * Represents dialog window used for adding new items to JComboBox.
+ * Uses ManagedTextField for data validation.
+ */
 public class AddDialog extends JDialog {
     private final JPanel container;
     private final ManagedTextField textField;
     private final JButton okButton;
     private final JButton cancelButton;
-    public DialogListener listener;
+    private DialogListener listener;
+
+    /**
+     * Creates class instance with specified parameters.
+     * @param parent Parent frame of this dialog.
+     * @param title Title of dialog.
+     * @param modal true if modal; false otherwise.
+     * @param validation Variable that specifies how data will be validated.
+     */
     public AddDialog(JFrame parent, String title, boolean modal, Data.Type validation) {
         super(parent, title, modal);
         container = new JPanel(new FlowLayout());
@@ -88,5 +100,9 @@ public class AddDialog extends JDialog {
         dispose();
     }
 
+    /**
+     * Adds dialog listener to this instances listener list.
+     * @param l DialogListener that will be added to the list.
+     */
     public void addDialogListener(DialogListener l) { listener = l;}
 }

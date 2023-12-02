@@ -7,6 +7,9 @@ import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 import java.awt.*;
 
+/**
+ * Cell editor used by JTable in columns with JComboBox cells.
+ */
 public class ComboBoxEditor extends DefaultCellEditor {
     private final JComboBox<String> component;
     public ComboBoxEditor() {

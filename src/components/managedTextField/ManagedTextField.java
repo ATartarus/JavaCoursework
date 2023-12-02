@@ -9,16 +9,28 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.awt.*;
 
+/**
+ * Represents TextFiled with constant text validation.
+ */
 public class ManagedTextField extends JTextField {
     private final Timer timer;
     private final Data data;
     private Border validBorder;
     private final Border invalidBorder;
 
+    /**
+     * Creates class instance with specified data type.
+     * @param type Specifies how text will be validated.
+     */
     public ManagedTextField(Data.Type type) {
         this(type, 0);
     }
 
+    /**
+     * Creates class instance with specified data type and field width.
+     * @param type Specifies how text will be validated.
+     * @param columns Number of columns of text field.
+     */
     public ManagedTextField(Data.Type type, int columns) {
         super(columns);
         validBorder = getBorder();
@@ -36,17 +48,25 @@ public class ManagedTextField extends JTextField {
         setBorder(data.isErrorDisplayNeeded() ? invalidBorder : validBorder);
     }
 
+    /**
+     * Updates data adn retrieves it.
+     * @return Data instance.
+     */
     public Data getData() {
         updateData();
         return data;
     }
 
+    /**
+     * Sets component Border that will be shown whenever it will contain valid Data.
+     * @param border Border to be set.
+     */
     public void setValidBorder(Border border) {
         validBorder = border;
         setBorder(data.isErrorDisplayNeeded() ? invalidBorder : validBorder);
     }
 
-    public void addEventListeners() {
+    private void addEventListeners() {
         addActionListener(e -> {
             checkData(true);
             formatData();
@@ -76,7 +96,6 @@ public class ManagedTextField extends JTextField {
      */
     public void checkData(boolean showMessage) {
         timer.stop();
-        //System.out.println("ManagedTextField:: checkData");
         updateData();
         if (showMessage && !data.isValid()) {
             JOptionPane.showMessageDialog(

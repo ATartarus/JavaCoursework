@@ -13,6 +13,9 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 
+/**
+ * Encapsulates all project data and its properties in file system.
+ */
 public class ProjectData {
     private final String folderPath;
     private String projectFileName;
@@ -20,10 +23,20 @@ public class ProjectData {
     private final HashMap<String, Writable> containers;
     private final PropertyChangeSupport propertySup;
 
+    /**
+     * Creates class instance with specified objects implementing Writable interface.
+     * @param containers Writable objects.
+     */
     public ProjectData(Writable[] containers) {
         this(containers, System.getProperty("user.home"));
     }
 
+    /**
+     * Creates class instance with specified objects implementing Writable interface and
+     * path to folder that will contain the data.
+     * @param containers Writable objects.
+     * @param folderPath Path to folder.
+     */
     public ProjectData(Writable[] containers, String folderPath) {
         this.containers = new HashMap<>();
         for (Writable source : containers) {
@@ -69,16 +82,27 @@ public class ProjectData {
         return dataFileName;
     }
 
+    /**
+     * Sets new project file name and notifies all listeners.
+     * @param projectFileName File name.
+     */
     public void setProjectFileName(String projectFileName) {
         String oldVal = this.projectFileName;
         this.projectFileName = projectFileName;
         propertySup.firePropertyChange("projectFileName", oldVal, projectFileName);
     }
 
+    /**
+     * Adds new PropertyChangeListener to listeners list.
+     * @param l new PropertyChangeListener.
+     */
     public void addPropertyChangeListener(PropertyChangeListener l) {
         propertySup.addPropertyChangeListener(l);
     }
 
+    /**
+     * Sets default project file name according to existing files in project folder.
+     */
     protected void setDefaultProjectName() {
         File[] files = new File(folderPath).listFiles(
                 (dir, name) -> name.endsWith(".xml") && name.startsWith("project")

@@ -1,12 +1,25 @@
 package entity;
 
+/**
+ * Represents student with name, serial number, ex result and mark.
+ */
 public class Student {
     private Data name;
     private Data serialNumber;
     private String result;
     private Data mark;
+    /**
+     * Contains all possible states of result field.
+     */
     public final static String[] results = new String[] {"Зачтено", "Не зачтено", "Не явился"};
 
+    /**
+     * Creates class instance with specified parameters.
+     * @param name Students name.
+     * @param serialNumber Students serial number.
+     * @param result Students ex result.
+     * @param mark Students mark.
+     */
     public Student(Data name, Data serialNumber, String result, Data mark) {
         this.name = name;
         this.serialNumber = serialNumber;

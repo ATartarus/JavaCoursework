@@ -10,9 +10,17 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 
+/**
+ * Represents frame with help information about this application.
+ */
 public class HelpWindow extends JFrame {
     private final JTree tree;
     private final JEditorPane infoPane;
+
+    /**
+     * Creates class instance with default configuration.
+     * Window will be shown at center of the screen.
+     */
     public HelpWindow() {
         super("Help");
         setSize(600, 400);
@@ -83,9 +91,24 @@ public class HelpWindow extends JFrame {
         }
     }
 
+    /**
+     * Represents TreeNode of JTree component.
+     */
     private static class Leaf {
+        /**
+         * Name of this node.
+         */
         public final String name;
+        /**
+         * URL of HTML file containing info about this node.
+         */
         public final URL url;
+
+        /**
+         * Creates class instance with name and corresponding URL.
+         * @param name Name of this node.
+         * @param url URL of corresponding HTML file.
+         */
         public Leaf(String name, String url) {
             this.name = name;
             this.url = getClass().getResource("/help/html/" + url);
@@ -94,6 +117,10 @@ public class HelpWindow extends JFrame {
             }
         }
 
+        /**
+         * Returns name of this node that will be displayed in JTree component.
+         * @return name of this node.
+         */
         @Override
         public String toString() {
             return name;

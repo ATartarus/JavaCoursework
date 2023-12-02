@@ -6,6 +6,9 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
 
+/**
+ * Cell renderer used by JTable in columns with JComboBox cells.
+ */
 public class ComboBoxRenderer extends DefaultTableCellRenderer {
     private final JComboBox<String> component;
     public ComboBoxRenderer() {

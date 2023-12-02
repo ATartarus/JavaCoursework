@@ -28,17 +28,35 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Class responsible for maintaining project files in file system.
+ * Contains methods for read and write of XML files and its supplementary methods.
+ */
 public class ProjectFileManager {
+    /**
+     * File chooser mode. Create file chooser to open file.
+     */
     public static final int OPEN_MODE = 0;
+    /**
+     * File chooser mode. Create file chooser to save file.
+     */
     public static final int SAVE_MODE = 1;
     private final ProjectData projectData;
     private boolean projectFileExists;
     private DocumentBuilder docBuilder;
 
+    /**
+     * Checks if current project is saved in project directory.
+     * @return true if exists; false otherwise.
+     */
     public boolean isProjectFileExists() {
         return projectFileExists;
     }
 
+    /**
+     * Creates class instance with specified project data.
+     * @param projectData Project data.
+     */
     public ProjectFileManager(ProjectData projectData) {
         this.projectData = projectData;
         this.projectFileExists = false;
@@ -57,6 +75,9 @@ public class ProjectFileManager {
         }
     }
 
+    /**
+     * Creates new project. This involves clear of all components.
+     */
     public void newProject() {
         Writable header = projectData.getContainer("header");
         if (header == null) throw new IllegalArgumentException("No item with 'header' key");

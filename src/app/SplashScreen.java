@@ -8,11 +8,19 @@ import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.io.InputStream;
 
+/**
+ * Represents window that will be shown on application startup.
+ */
 public class SplashScreen extends JWindow {
     private final JPanel mainPanel;
     private final JPanel innerGridPanel;
     private final JPanel buttonsPanel;
     private final Timer exitTimer;
+
+    /**
+     * Creates class instance with default configuration.
+     * Window will be shown at center of the screen.
+     */
     public SplashScreen() {
         exitTimer = new Timer(30000, e -> onExitButtonClick());
         addWindowListener(new WindowAdapter() {
@@ -110,6 +118,12 @@ public class SplashScreen extends JWindow {
         exitButton.addActionListener(e -> onExitButtonClick());
     }
 
+    /**
+     * Utility method used for adding JLabel to the center of JPanel with BoxLayout.
+     * @param text Content of JLabel.
+     * @param container JPanel with BoxLayout.
+     * @param font Font instance for JLabel.
+     */
     public static void addCenteredLabel(String text, JPanel container, Font font) {
         JLabel l = new JLabel(text);
         if (font != null) l.setFont(font);

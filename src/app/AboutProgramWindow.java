@@ -6,7 +6,15 @@ import java.awt.*;
 import java.io.IOException;
 import java.io.InputStream;
 
+/**
+ * Represents dialog window with information about the program.
+ */
 public class AboutProgramWindow extends JDialog {
+    /**
+     * Creates class instance with parent frame.
+     * Window will be shown at center of the screen.
+     * @param parentFrame parent frame of this instance.
+     */
     public AboutProgramWindow(JFrame parentFrame) {
         super(parentFrame, null, true);
         setResizable(false);

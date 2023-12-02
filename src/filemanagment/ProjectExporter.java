@@ -16,6 +16,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+/**
+ * Utility class for docx export.
+ */
 public class ProjectExporter {
     private ProjectExporter() {}
     private static String getPlaceholder(String text) { return "${" + text + "}"; }
@@ -91,7 +94,12 @@ public class ProjectExporter {
         }
     }
 
-
+    /**
+     * Exports project data to specified output by existing template docx.
+     * @param projectData Data to be exported.
+     * @param outputPath Export path.
+     * @throws IOException If template read or file write failed.
+     */
     public static void export(ProjectData projectData, String outputPath) throws IOException {
         String templatePath = projectData.getFolderPath() + "/template.docx";
         try (FileInputStream input = new FileInputStream(templatePath);
@@ -152,6 +160,12 @@ public class ProjectExporter {
         }
     }
 
+    /**
+     * Creates and shows file chooser to choose export location.
+     * @param parent Parent of file chooser.
+     * @param defaultFileName Default exported file name.
+     * @return Selected file path.
+     */
     public static String showFileChooser(Component parent, String defaultFileName) {
         JFileChooser fileChooser = new JFileChooser() {
             @Override

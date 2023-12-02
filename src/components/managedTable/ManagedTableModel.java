@@ -6,6 +6,9 @@ import entity.Student;
 import javax.swing.table.AbstractTableModel;
 import java.util.ArrayList;
 
+/**
+ * Represents TableModel with Student instances as data and predefined headers.
+ */
 public class ManagedTableModel extends AbstractTableModel {
     private final String[] columnHeaders = new String[] {
             "№", "Фамилия, инициалы обучающегося", "№ зачетной книжки", "Отметка о зачёте", "Оценка"
@@ -79,6 +82,10 @@ public class ManagedTableModel extends AbstractTableModel {
         return value;
     }
 
+    /**
+     * Adds new row to the model as a new Student instance.
+     * @param row Student instance whose data will be copied and placed in this model.
+     */
     public void addRow(Student row) {
         Student record;
         if (row == null) {
@@ -100,20 +107,36 @@ public class ManagedTableModel extends AbstractTableModel {
         fireTableRowsInserted(getRowCount() - 1, getRowCount() - 1);
     }
 
+    /**
+     * Removes models row by its index.
+     * @param ind Index of row to remove.
+     */
     public void removeRow(int ind) {
         tableData.remove(ind);
         fireTableDataChanged();
     }
 
+    /**
+     * Retrieves data of specified row as a Student instance.
+     * @param row Row index to retrieve.
+     * @return Student instance with row data.
+     */
     public Student getEntity(int row) {
         return tableData.get(row);
     }
 
+    /**
+     * Deletes all data.
+     */
     public void clear() {
         tableData.clear();
         fireTableRowsDeleted(0, getRowCount());
     }
 
+    /**
+     * Checks whether data contained in this model can be written.
+     * @return true if data is writable; false otherwise.
+     */
     public boolean isReadyToWrite() {
         if (tableData.isEmpty()) {
             return false;
@@ -126,6 +149,10 @@ public class ManagedTableModel extends AbstractTableModel {
         return true;
     }
 
+    /**
+     * Counts students with "Не явился" result value.
+     * @return Number of students.
+     */
     public int countNotAppeared() {
         int count = 0;
         for (Student student : tableData) {

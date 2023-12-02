@@ -8,8 +8,13 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.util.EventObject;
 
-
+/**
+ * Represents table with custom cell editors and renderers.
+ */
 public class ManagedTable extends JTable {
+    /**
+     * Creates class instance with single selection mode and custom cell editors and renderers.
+     */
     public ManagedTable() {
         setCellSelectionEnabled(true);
         setSelectionMode(ListSelectionModel.SINGLE_SELECTION);

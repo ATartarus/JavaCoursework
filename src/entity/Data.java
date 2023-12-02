@@ -3,11 +3,14 @@ package entity;
 import exceptions.ValidationException;
 
 /**
- * Represents typed String with auto-validation
- * String is always stored in its original form despite validation result
- * String validity can be checked by isValid method
+ * Represents typed String with auto-validation.
+ * String is always stored in its original form despite validation result.
+ * String validity can be checked by isValid method.
  */
 public class Data {
+    /**
+     * Represents all types that have unique validation.
+     */
     public enum Type {
         Group, Name, Faculty, Discipline, Year, Hours, Date, SerialNumber, Mark
     }
@@ -16,15 +19,28 @@ public class Data {
     private boolean valid;
     private String message;
 
+    /**
+     * Creates class instance with specified type.
+     * @param type type of data stored in this instance.
+     */
     public Data(Type type) {
         this(type, null);
     }
 
+    /**
+     * Creates class instance with specified type and initial data.
+     * @param type of data stored in this instance.
+     * @param content Data that will be stored.
+     */
     public Data(Type type, String content) {
         this.type = type;
         setText(content);
     }
 
+    /**
+     * Creates copy of passed Data.
+     * @param prototype Data instance to copy.
+     */
     public Data(Data prototype) {
         this.text = prototype.text;
         this.type = prototype.type;
@@ -67,14 +83,26 @@ public class Data {
         }
     }
 
+    /**
+     * Retrieves text of stored data.
+     * @return Data text.
+     */
     public String getText() {
         return text;
     }
 
+    /**
+     * Retrieves data type.
+     * @return Data type.
+     */
     public Type getType() {
         return type;
     }
 
+    /**
+     * Retrieves validation message if data is invalid.
+     * @return Validation message if invalid; null otherwise.
+     */
     public String getValidationMessage() {
         return message;
     }

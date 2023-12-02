@@ -3,9 +3,13 @@ package components.addDialog;
 import exceptions.ValidationException;
 
 /**
- * Provides methods to validate dialogs input
- * and perform some actions after validation
+ * Represents interface used in pair with AddDialog in order to add new items to JComboBoxes.
  */
 public interface DialogListener {
+    /**
+     * This method is called whenever is needed to try to add new item to JComboBox model.
+     * @param str New item.
+     * @throws ValidationException If str parameter is invalid.
+     */
     void addItem(String str) throws ValidationException;
 }

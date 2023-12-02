@@ -22,12 +22,19 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 
+/**
+ * Represents frame with main functionality of application.
+ */
 public class MainWindow extends JFrame {
     private final Header header;
     private final Body body;
     private final Footer footer;
     private final Application app;
 
+    /**
+     * Creates class instance with specified application instance.
+     * @param application Application instance used to gather and store information.
+     */
     public MainWindow(Application application) {
         this.app = application;
 
@@ -125,6 +132,10 @@ public class MainWindow extends JFrame {
         return menuBar;
     }
 
+    /**
+     * Provides with objects whose data needs to be stored.
+     * @return Array of objects implementing Writable interface.
+     */
     public Writable[] getWritableData() {
         return new Writable[] { header, body };
     }
@@ -301,6 +312,9 @@ public class MainWindow extends JFrame {
     }
 
 
+    /**
+     * Encapsulates all logic of top part of MainWindow.
+     */
     private class Header extends JPanel implements Writable {
         private JComboBox<String> semesterComboBox;
         private JComboBox<String> courseComboBox;
@@ -324,6 +338,9 @@ public class MainWindow extends JFrame {
         private JLabel academicLabel;
         private JLabel hoursLabel;
 
+        /**
+         * Creates class instance with default configuration.
+         */
         public Header () {
             setLayout(new GridBagLayout());
             setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -400,10 +417,6 @@ public class MainWindow extends JFrame {
             }
         }
 
-        /**
-         * Places components into cells created by createCell method
-         * and places them on container with respect to GridBagConstraints
-         */
         private void addComponents() {
             JPanel cell;
             GridBagConstraints gbc = new GridBagConstraints();
@@ -570,10 +583,6 @@ public class MainWindow extends JFrame {
             dateTextField.setPreferredSize(new Dimension(60, 28));
         }
 
-        /**
-         * Creates cells containing components
-         * Used by createMarkup method
-         */
         private JPanel createCell(String label, JComponent input, JComponent btn) {
             JPanel cell = new JPanel();
             cell.setLayout(new BoxLayout(cell, BoxLayout.X_AXIS));
@@ -593,9 +602,6 @@ public class MainWindow extends JFrame {
             return cell;
         }
 
-        /**
-         * Tries to add str to combobox. If str already exists throws RuntimeException
-         */
         private void addItem(String str, JComboBox<String> comboBox) throws ValidationException {
             if (str == null || str.isBlank()) {
                 throw new ValidationException("Элемент не может быть пустым");
@@ -610,6 +616,10 @@ public class MainWindow extends JFrame {
             comboBox.setSelectedItem(str);
         }
 
+        /**
+         * Provides currently selected group.
+         * @return Group ID.
+         */
         public String getGroupID() {
             String groupID;
             Object selectedItem = groupComboBox.getSelectedItem();
@@ -620,12 +630,18 @@ public class MainWindow extends JFrame {
         }
     }
 
+    /**
+     * Encapsulates all logic of middle part of MainWindow.
+     */
     private class Body extends JPanel implements Writable {
         private JScrollPane scroll;
         private ManagedTable table;
         private JButton addButton;
-
         private JButton removeButton;
+
+        /**
+         * Creates class instance with default configuration.
+         */
         public Body() {
             setLayout(new BorderLayout());
             setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -734,15 +750,26 @@ public class MainWindow extends JFrame {
         }
 
 
+        /**
+         * Checks if currently selected group data can be written.
+         * @return true if write is possible; false otherwise.
+         */
         public boolean isGroupReadyToWrite(){
             return ((ManagedTableModel) table.getModel()).isReadyToWrite();
         }
 
+        /**
+         * Adds table model listener to JTable contained in Body instance.
+         * @param l TableModelListener instance that will be added to listeners list,
+         */
         public void addTableModelListener(TableModelListener l) {
             table.getModel().addTableModelListener(l);
         }
     }
 
+    /**
+     * Encapsulates all logic of bottom part of MainWindow.
+     */
     private class Footer extends JPanel {
         private JLabel appearedStudents;
         private final String appearedStudentsPlaceholder =
@@ -752,6 +779,9 @@ public class MainWindow extends JFrame {
                 "<html><em>Количество обучающихся, не явившихся на аттестацию<br>" +
                         "(в том числе, не допущенных к аттестации): <b>${val}</b></em></html>";
 
+        /**
+         * Creates class instance with default configuration.
+         */
         public Footer() {
             setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
             setBorder(BorderFactory.createLineBorder(Color.gray, 1));
@@ -779,6 +809,11 @@ public class MainWindow extends JFrame {
             add(notAppearedStudents);
         }
 
+        /**
+         * Updates label content based on the table model.
+         * Designed to be called as TableModelListener instance.
+         * @param e TableModelEvent passed by parent JTable.
+         */
         public void updateData(TableModelEvent e) {
             Object source = e.getSource();
             if (source instanceof ManagedTableModel model) {

@@ -5,6 +5,9 @@ import exceptions.ValidationException;
 import java.util.EnumMap;
 import java.util.regex.*;
 
+/**
+ * Utility class for data validation and formatting.
+ */
 public final class Validator {
     private Validator() {}
     private static final EnumMap<Data.Type, String> patterns;
@@ -34,6 +37,12 @@ public final class Validator {
         messages.put(Data.Type.Mark, "Оценка не соответствует формату");
     }
 
+    /**
+     * Validates string by the given type.
+     * @param str String to validate.
+     * @param type Validation type.
+     * @throws ValidationException If validation failed.
+     */
     public static void validate(String str, Data.Type type) throws ValidationException {
         if (str == null || str.isBlank()) {
             throw new ValidationException("Элемент не может быть пустым");
@@ -46,6 +55,12 @@ public final class Validator {
         }
     }
 
+    /**
+     * Formats string by the given type.
+     * @param source String to format.
+     * @param type Formatting type.
+     * @return Formatted string.
+     */
     public static String getFormattedString(String source, Data.Type type) {
         if (source == null || type == null) return null;
 

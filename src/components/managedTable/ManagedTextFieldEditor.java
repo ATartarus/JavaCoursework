@@ -9,6 +9,9 @@ import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 
+/**
+ * Cell editor used by JTable in columns with ManagedTextField cells.
+ */
 public class ManagedTextFieldEditor extends DefaultCellEditor {
     private final ManagedTextField component;
     public ManagedTextFieldEditor(Data.Type type) {

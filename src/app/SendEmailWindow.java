@@ -12,6 +12,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
+/**
+ * Represents dialog window for sending emails.
+ */
 public class SendEmailWindow extends JDialog {
     private FileCreator fileCreator;
     private final JPanel header;
@@ -22,6 +25,12 @@ public class SendEmailWindow extends JDialog {
     private JTextField subjectTextField;
     private JTextArea messageTextArea;
 
+    /**
+     * Creates class instance with parent frame and Application instance.
+     * Window will be shown at center of the screen.
+     * @param parentFrame parent frame of this instance.
+     * @param app Application instance used to retrieve data.
+     */
     public SendEmailWindow(JFrame parentFrame, Application app) {
         super(parentFrame, "Send email", true);
         fileCreator = new FileCreator(app.getData());
@@ -153,7 +162,7 @@ public class SendEmailWindow extends JDialog {
         fileCreator = new FileCreator(fileCreator.data);
     }
 
-    protected void sendEmail() {
+    private void sendEmail() {
         Properties smtpProp = new Properties();
         smtpProp.put("mail.smtp.host", "smtp.gmail.com");
         smtpProp.put("mail.smtp.port", "587");
@@ -193,13 +202,22 @@ public class SendEmailWindow extends JDialog {
         );
     }
 
+    /**
+     * Supplementary class used for creating docx file that will be sent via email.
+     */
     private class FileCreator extends SwingWorker<Void, Void> {
         private final ProjectData data;
         private final String filePath;
+
+        /**
+         * Creates class instance with project data.
+         * @param data data that will be written in docx and sent as email.
+         */
         public FileCreator(ProjectData data) {
             this.data = data;
             this.filePath = data.getFolderPath() + "tmp.docx";
         }
+
         @Override
         protected Void doInBackground() throws IOException {
             ProjectExporter.export(data, filePath);

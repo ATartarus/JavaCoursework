@@ -7,7 +7,20 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.Properties;
 
+/**
+ * Utility class used to send emails.
+ */
 public class EmailSender {
+    /**
+     * Sends email with specified parameters.
+     * @param recipientEmail Email address of the receiver.
+     * @param subject Subject of this email.
+     * @param message Message of this email.
+     * @param smtpProp Properties of SMTP server used to send emails.
+     * @param attachedFiles Any files that will be sent with email.
+     * @throws MessagingException If any message issues happened.
+     * @throws IOException If file attachment failed.
+     */
     public static void send(String recipientEmail, String subject, String message,
                             Properties smtpProp, File[] attachedFiles)
             throws MessagingException, IOException {

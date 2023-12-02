@@ -7,12 +7,17 @@ import javax.swing.plaf.FontUIResource;
 import java.awt.*;
 import java.util.Enumeration;
 
-
+/**
+ * Main class with entry point that contains application data.
+ */
 public class Application {
     public static final String NAME = "Journal";
     private final ProjectData projectData;
     private final ProjectFileManager fileManager;
 
+    /**
+     * Creates class instance, creates and shows main window.
+     */
     public Application() {
         MainWindow mainWindow = new MainWindow(this);
         projectData = new ProjectData(mainWindow.getWritableData());
@@ -41,14 +46,26 @@ public class Application {
         UIManager.put("Menu.font", new FontUIResource(new Font(font, Font.PLAIN, 14)));
     }
 
+    /**
+     * Provides file manager responsible for data manipulation.
+     * @return ProjectFileManager instance.
+     */
     public ProjectFileManager getFileManager() {
         return fileManager;
     }
 
+    /**
+     * Provides data of current project.
+     * @return ProjectData instance.
+     */
     public ProjectData getData() {
         return projectData;
     }
 
+    /**
+     * Application entry point. Sets up default configuration and shows SplashScreen.
+     * @param args console arguments.
+     */
     public static void main(String[] args) {
         configUIDefaults();
 

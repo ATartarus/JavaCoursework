@@ -4,6 +4,9 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
 
+/**
+ * Cell renderer used by JTable in id column.
+ */
 public class IDCellRenderer extends DefaultTableCellRenderer {
     public IDCellRenderer() {
         setHorizontalAlignment(JLabel.CENTER);

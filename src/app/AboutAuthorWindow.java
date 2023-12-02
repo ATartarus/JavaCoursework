@@ -6,7 +6,15 @@ import java.awt.*;
 import java.io.IOException;
 import java.io.InputStream;
 
+/**
+ * Represents dialog window with information about author.
+ */
 public class AboutAuthorWindow extends JDialog {
+    /**
+     * Creates class instance with parent frame.
+     * Window will be shown at center of the screen.
+     * @param parentFrame parent frame of this instance.
+     */
     public AboutAuthorWindow(JFrame parentFrame) {
         super(parentFrame, null, true);
         ((JPanel) getContentPane()).setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
