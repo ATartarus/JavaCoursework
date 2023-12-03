@@ -273,6 +273,12 @@ public class MainWindow extends JFrame {
             protected Void doInBackground() {
                 try {
                     ProjectExporter.export(app.getData(), fileName);
+                    JOptionPane.showMessageDialog(
+                            MainWindow.this,
+                            "Файл успешно создан",
+                            "Success",
+                            JOptionPane.INFORMATION_MESSAGE
+                    );
                 } catch (IOException e) {
                     JOptionPane.showMessageDialog(
                             MainWindow.this,

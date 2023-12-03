@@ -669,8 +669,6 @@ public class ProjectFileManager {
         }
     }
 
-
-
     /**
      * Checks if group with specified id exists in data file.
      * @param id id attribute of a group.

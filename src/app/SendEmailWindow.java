@@ -193,11 +193,10 @@ public class SendEmailWindow extends JDialog {
         }
 
         this.dispose();
-        JOptionPane.showConfirmDialog(
+        JOptionPane.showMessageDialog(
                 this,
                 "Email отправлен успешно",
                 "Success",
-                JOptionPane.OK_CANCEL_OPTION,
                 JOptionPane.INFORMATION_MESSAGE
         );
     }
